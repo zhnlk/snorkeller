@@ -2,6 +2,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
+
 from builtins import *
 
 import treedlib.templates as tpl
@@ -89,41 +90,41 @@ def _get_window_features(context, idxs, window=3, combinations=True, isolated=Tr
         pass
     if isolated:
         for i in range(len(left_lemmas)):
-            yield "W_LEFT_" + str(i+1) + "_[" + " ".join(left_lemmas[-i-1:]) + \
-                "]"
-            yield "W_LEFT_POS_" + str(i+1) + "_[" + " ".join(left_pos_tags[-i-1:]) +\
-                "]"
+            yield "W_LEFT_" + str(i + 1) + "_[" + " ".join(left_lemmas[-i - 1:]) + \
+                  "]"
+            yield "W_LEFT_POS_" + str(i + 1) + "_[" + " ".join(left_pos_tags[-i - 1:]) + \
+                  "]"
         for i in range(len(right_lemmas)):
-            yield "W_RIGHT_" + str(i+1) + "_[" + " ".join(right_lemmas[:i+1]) +\
-                "]"
-            yield "W_RIGHT_POS_" + str(i+1) + "_[" + \
-                " ".join(right_pos_tags[:i+1]) + "]"
+            yield "W_RIGHT_" + str(i + 1) + "_[" + " ".join(right_lemmas[:i + 1]) + \
+                  "]"
+            yield "W_RIGHT_POS_" + str(i + 1) + "_[" + \
+                  " ".join(right_pos_tags[:i + 1]) + "]"
     if combinations:
         for i in range(len(left_lemmas)):
-            curr_left_lemmas = " ".join(left_lemmas[-i-1:])
+            curr_left_lemmas = " ".join(left_lemmas[-i - 1:])
             try:
-                curr_left_pos_tags = " ".join(left_pos_tags[-i-1:])
+                curr_left_pos_tags = " ".join(left_pos_tags[-i - 1:])
             except TypeError:
                 new_pos_tags = []
-                for pos in left_pos_tags[-i-1:]:
+                for pos in left_pos_tags[-i - 1:]:
                     to_add = pos
                     if not to_add:
                         to_add = "None"
                     new_pos_tags.append(to_add)
                 curr_left_pos_tags = " ".join(new_pos_tags)
             for j in range(len(right_lemmas)):
-                curr_right_lemmas = " ".join(right_lemmas[:j+1])
+                curr_right_lemmas = " ".join(right_lemmas[:j + 1])
                 try:
-                    curr_right_pos_tags = " ".join(right_pos_tags[:j+1])
+                    curr_right_pos_tags = " ".join(right_pos_tags[:j + 1])
                 except TypeError:
                     new_pos_tags = []
-                    for pos in right_pos_tags[:j+1]:
+                    for pos in right_pos_tags[:j + 1]:
                         to_add = pos
                         if not to_add:
                             to_add = "None"
                         new_pos_tags.append(to_add)
                     curr_right_pos_tags = " ".join(new_pos_tags)
-                yield "W_LEMMA_L_" + str(i+1) + "_R_" + str(j+1) + "_[" + \
-                    curr_left_lemmas + "]_[" + curr_right_lemmas + "]"
-                yield "W_POS_L_" + str(i+1) + "_R_" + str(j+1) + "_[" + \
-                    curr_left_pos_tags + "]_[" + curr_right_pos_tags + "]"
+                yield "W_LEMMA_L_" + str(i + 1) + "_R_" + str(j + 1) + "_[" + \
+                      curr_left_lemmas + "]_[" + curr_right_lemmas + "]"
+                yield "W_POS_L_" + str(i + 1) + "_R_" + str(j + 1) + "_[" + \
+                      curr_left_pos_tags + "]_[" + curr_right_pos_tags + "]"

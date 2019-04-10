@@ -2,17 +2,20 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
+
 from builtins import *
 
-from .constants import *
 from numba import jit
 import numpy as np
+
+from .constants import *
 
 
 class DependencySelector(object):
     """
     Fast method for identifying dependencies among labeling functions.
     """
+
     def __init__(self):
         pass
 
@@ -64,7 +67,7 @@ class DependencySelector(object):
             if propensity:
                 weights[len(weights) - 1] = 0.0
 
-            _fit_deps(m, n, j, L, weights, joint, higher_order, propensity,  threshold, truncation)
+            _fit_deps(m, n, j, L, weights, joint, higher_order, propensity, threshold, truncation)
 
             for k in range(n):
                 if abs(weights[n + k]) > threshold:

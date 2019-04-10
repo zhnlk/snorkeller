@@ -2,7 +2,9 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
+
 from builtins import *
+
 
 class SparkCorpusParser(object):
     """
@@ -11,6 +13,7 @@ class SparkCorpusParser(object):
 
     NOTE: Currently just a stub.
     """
+
     def __init__(self, snorkel_session, spark_session, parser, fn=None):
         """
         Constructor

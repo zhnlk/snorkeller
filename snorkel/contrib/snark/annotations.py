@@ -2,11 +2,12 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
-from builtins import *
 
+from builtins import *
 from functools import partial
 
 from models.candidate import wrap_candidate
+
 from snorkel.annotations import load_label_matrix
 from snorkel.models.annotation import Label, LabelKey
 from snorkel.models.meta import snorkel_conn_string
@@ -18,6 +19,7 @@ class SparkLabelAnnotator(object):
     Distributes candidates to a Spark cluster and applies labeling functions
     over them. See snorkel.annotations.LabelAnnotator.
     """
+
     def __init__(self, snorkel_session, spark_session, candidate_class):
         """
         Constructor
@@ -63,7 +65,7 @@ class SparkLabelAnnotator(object):
         label_tuples = []
         for lf in LFs:
             lf_id = self.snorkel_session.execute(key_query,
-                {'name': lf.__name__, 'group': 0}).inserted_primary_key[0]
+                                                 {'name': lf.__name__, 'group': 0}).inserted_primary_key[0]
 
             labels = self.split_cache[split].map(lambda c: (c.id, lf(c)))
             labels.filter(lambda __value: __value[1] != 0 and __value[1] is not None)
@@ -97,12 +99,10 @@ class SparkLabelAnnotator(object):
 
         :param split: the split of candidates to load
         """
-        jdbcDF = self.spark_session.read \
-            .format("jdbc") \
-            .option("url", "jdbc:" + snorkel_conn_string) \
+        jdbcDF = self.spark_session.read.format("jdbc").option("url",
+                                                               "jdbc:" + snorkel_conn_string) \
             .option("dbtable",
-                self.candidate_class.__tablename__ + "_serialized") \
-            .load()
+                    self.candidate_class.__tablename__ + "_serialized").load()
 
         rdd = jdbcDF.rdd.map(partial(
             wrap_candidate,
@@ -110,6 +110,5 @@ class SparkLabelAnnotator(object):
             argnames=self.candidate_class.__argnames__
         )).filter(lambda c: c.split == split)
 
-        rdd = rdd.setName("Snorkel Candidates, Split " + str(split) + \
-            " (" + self.candidate_class.__name__ + ")")
+        rdd = rdd.setName("Snorkel Candidates, Split " + str(split) + " (" + self.candidate_class.__name__ + ")")
         self.split_cache[split] = rdd.cache()

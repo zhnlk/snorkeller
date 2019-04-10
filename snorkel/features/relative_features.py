@@ -2,8 +2,8 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
-from builtins import *
 
+from builtins import *
 from collections import defaultdict
 from functools import partial
 from string import punctuation
@@ -38,8 +38,8 @@ def get_span_splits_stopwords(stopwords):
 def get_unary_span_feats(sidxs, sentence, stopwords):
     """Get unary span features from DDLib and TreeDLib"""
     get_tdl_feats = compile_entity_feature_generator()
-    sent_dict     = get_as_dict(sentence)
-    xmltree       = corenlp_to_xmltree(sent_dict)
+    sent_dict = get_as_dict(sentence)
+    xmltree = corenlp_to_xmltree(sent_dict)
     if len(sidxs) > 0:
         # Add DDLIB entity features
         for f in get_ddlib_feats(sent_dict, sidxs):
@@ -103,7 +103,7 @@ def get_first_document_span_feats(candidate, stopwords=None):
     entity_types = [
         c.get_attrib_tokens('entity_types')[0] for c in candidate.get_contexts()
     ]
-    #entity_cids = candidate.get_cids()
+    # entity_cids = candidate.get_cids()
     entity_cids = [
         c.get_attrib_tokens('entity_cids')[0] for c in candidate.get_contexts()
     ]
@@ -158,7 +158,7 @@ def get_relative_frequency_feats(candidate, context):
     entity_types = [
         c.get_attrib_tokens('entity_types')[0] for c in candidate.get_contexts()
     ]
-    #entity_cids = candidate.get_cids()
+    # entity_cids = candidate.get_cids()
     entity_cids = [
         c.get_attrib_tokens('entity_cids')[0] for c in candidate.get_contexts()
     ]
