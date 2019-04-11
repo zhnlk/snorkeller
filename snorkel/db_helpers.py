@@ -1,5 +1,3 @@
-from builtins import *
-
 from future.utils import iteritems
 
 from snorkel.models import Context, GoldLabel, GoldLabelKey, StableLabel

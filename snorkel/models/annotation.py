@@ -1,5 +1,3 @@
-from builtins import *
-
 from sqlalchemy import Column, String, Integer, Float, ForeignKey, UniqueConstraint
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.orm import relationship, backref

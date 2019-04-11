@@ -1,4 +1,3 @@
-from builtins import *
 import unittest
 
 from numbskull.inference import FACTORS

@@ -1,7 +1,3 @@
-
-from builtins import *
-
-
 class SparkCorpusParser(object):
     """
     Distributes raw documents to a Spark cluster and applies a parser to them,

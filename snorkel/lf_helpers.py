@@ -1,4 +1,3 @@
-from builtins import *
 import re
 from itertools import chain
 

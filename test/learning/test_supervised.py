@@ -1,4 +1,3 @@
-from builtins import *
 import unittest
 import random
 
@@ -68,7 +67,7 @@ class TestSupervised(unittest.TestCase):
         self.assertTrue(np.all(np.abs(accs - priors) < tol))
 
         # Now test that estimated LF accs are not too far off
-        print("\nTesting estimated LF accs (TOL=%s)" % tol)
+        print("Testing estimated LF accs (TOL=%s)" % tol)
         gen_model.train(
             L,
             lf_acc_prior_weights=lf_acc_prior_weights,
@@ -86,7 +85,7 @@ class TestSupervised(unittest.TestCase):
         self.assertTrue(np.all(np.abs(coverage - np.array([1, 1, 1, 1, 0.2, 0.1]) < tol)))
 
         # Test without supervised
-        print("\nTesting without supervised")
+        print("Testing without supervised")
         gen_model = GenerativeModel(lf_propensity=True)
         gen_model.train(L, reg_type=0)
         stats = gen_model.learned_lf_stats()
@@ -99,7 +98,7 @@ class TestSupervised(unittest.TestCase):
         self.assertTrue(np.all(np.abs(coverage - np.array([1, 1, 1, 1, 0.2]) < tol)))
 
         # Test with supervised
-        print("\nTesting with supervised, without priors")
+        print("Testing with supervised, without priors")
         gen_model = GenerativeModel(lf_propensity=True)
         gen_model.train(
             L,
@@ -116,7 +115,7 @@ class TestSupervised(unittest.TestCase):
         self.assertTrue(np.all(np.abs(coverage - np.array([1, 1, 1, 1, 0.2, 0.1]) < tol)))
 
         # Test without supervised, and (intentionally) bad priors, but weak strength
-        print("\nTesting without supervised, with bad priors (weak)")
+        print("Testing without supervised, with bad priors (weak)")
         gen_model = GenerativeModel(lf_propensity=True)
         bad_prior = [0.9, 0.8, 0.7, 0.6, 0.5]
         bad_prior_weights = [0.5 * np.log((cardinality - 1.0) * x / (1 - x)) for x in bad_prior]
@@ -134,7 +133,7 @@ class TestSupervised(unittest.TestCase):
         self.assertTrue(np.all(np.abs(accs - priors) < tol))
 
         # Test without supervised, and (intentionally) bad priors
-        print("\nTesting without supervised, with bad priors (strong)")
+        print("Testing without supervised, with bad priors (strong)")
         gen_model = GenerativeModel(lf_propensity=True)
         gen_model.train(
             L,

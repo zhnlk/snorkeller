@@ -1,4 +1,3 @@
-from builtins import *
 import re
 from pathlib import Path
 from collections import defaultdict

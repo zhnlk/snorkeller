@@ -1,6 +1,3 @@
-
-from builtins import *
-
 from six.moves.urllib.request import urlopen
 from six.moves.urllib.error import URLError, HTTPError
 

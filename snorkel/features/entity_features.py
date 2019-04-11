@@ -1,5 +1,3 @@
-from builtins import *
-
 import treedlib.templates as tpl
 
 

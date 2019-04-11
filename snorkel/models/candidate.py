@@ -1,11 +1,5 @@
-from builtins import *
-
-from sqlalchemy import (
-    Column, String, Integer, Float, Boolean, ForeignKey, UniqueConstraint,
-    MetaData
-)
-from sqlalchemy.orm import relationship, backref
-from functools import partial
+from sqlalchemy import (Boolean, Column, Float, ForeignKey, Integer, String, UniqueConstraint)
+from sqlalchemy.orm import backref, relationship
 
 from snorkel.models.meta import SnorkelBase
 from snorkel.models import snorkel_engine
@@ -20,9 +14,9 @@ class Candidate(SnorkelBase):
     **not** subclassing this class directly.
     """
     __tablename__ = 'candidate'
-    id          = Column(Integer, primary_key=True)
-    type        = Column(String, nullable=False)
-    split       = Column(Integer, nullable=False, default=0, index=True)
+    id = Column(Integer, primary_key=True)
+    type = Column(String, nullable=False)
+    split = Column(Integer, nullable=False, default=0, index=True)
 
     __mapper_args__ = {
         'polymorphic_identity': 'candidate',
@@ -60,13 +54,15 @@ class Candidate(SnorkelBase):
             ", ".join(map(str, self.get_contexts()))
         )
 
+
 # This global dictionary contains all classes that have been declared in this Python environment, so
 # that candidate_subclass() can return a class if it already exists and is identical in specification
 # to the requested class
 candidate_subclasses = {}
 
+
 def candidate_subclass(class_name, args, table_name=None, cardinality=None,
-    values=None):
+                       values=None):
     """
     Creates and returns a Candidate subclass with provided argument names,
     which are Context type. Creates the table in DB if does not exist yet.
@@ -103,7 +99,8 @@ def candidate_subclass(class_name, args, table_name=None, cardinality=None,
             raise ValueError("`None` is a protected value.")
         # Note that bools are instances of ints in Python...
         if any([isinstance(v, int) and not isinstance(v, bool) for v in values]):
-            raise ValueError("Default usage of values is consecutive integers. Leave values unset if attempting to define values as integers.")
+            raise ValueError(
+                "Default usage of values is consecutive integers. Leave values unset if attempting to define values as integers.")
         cardinality = len(values)
 
     # If cardinality is specified but not values, fill in with ints
@@ -122,24 +119,24 @@ def candidate_subclass(class_name, args, table_name=None, cardinality=None,
         class_attribs = {
 
             # Declares name for storage table
-            '__tablename__' : table_name,
+            '__tablename__': table_name,
 
             # Connects candidate_subclass records to generic Candidate records
-            'id' : Column(
+            'id': Column(
                 Integer,
                 ForeignKey('candidate.id', ondelete='CASCADE'),
                 primary_key=True
             ),
 
             # Store values & cardinality information in the class only
-            'values' : values,
-            'cardinality' : cardinality,
+            'values': values,
+            'cardinality': cardinality,
 
             # Polymorphism information for SQLAlchemy
-            '__mapper_args__' : {'polymorphic_identity': table_name},
+            '__mapper_args__': {'polymorphic_identity': table_name},
 
             # Helper method to get argument names
-            '__argnames__' : args,
+            '__argnames__': args,
         }
 
         # Create named arguments, i.e. the entity mentions comprising the relation
@@ -147,7 +144,6 @@ def candidate_subclass(class_name, args, table_name=None, cardinality=None,
         # For each entity mention: id, cid ("canonical id"), and pointer to Context
         unique_args = []
         for arg in args:
-
             # Primary arguments are constituent Contexts, and their ids
             class_attribs[arg + '_id'] = Column(
                 Integer, ForeignKey('context.id', ondelete='CASCADE'), index=True)
@@ -194,16 +190,15 @@ class Marginal(SnorkelBase):
     @training: If True, this is a training marginal; otherwise is end prediction
     """
     __tablename__ = 'marginal'
-    id           = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True)
     candidate_id = Column(Integer,
-                        ForeignKey('candidate.id', ondelete='CASCADE'), index=True)
-    training     = Column(Boolean, default=True)
-    value        = Column(Integer, nullable=False, default=1)
-    probability  = Column(Float, nullable=False, default=0.0)
-    candidate    = relationship('Candidate', backref=backref('marginals',
-                            cascade='all, delete-orphan'),
-                        foreign_keys=candidate_id)
-
+                          ForeignKey('candidate.id', ondelete='CASCADE'), index=True)
+    training = Column(Boolean, default=True)
+    value = Column(Integer, nullable=False, default=1)
+    probability = Column(Float, nullable=False, default=0.0)
+    candidate = relationship('Candidate', backref=backref('marginals',
+                                                          cascade='all, delete-orphan'),
+                             foreign_keys=candidate_id)
 
     __table_args__ = (
         UniqueConstraint(candidate_id, training, value),
@@ -212,4 +207,4 @@ class Marginal(SnorkelBase):
     def __repr__(self):
         label = "Training" if self.training else "Predicted"
         return "<%s Marginal: P(%s == %s) = %s>" % \
-            (label, self.candidate_id, self.value, self.probability)
+               (label, self.candidate_id, self.value, self.probability)

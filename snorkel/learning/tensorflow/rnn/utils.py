@@ -1,6 +1,3 @@
-from builtins import *
-from future.utils import iteritems
-
 import tensorflow as tf
 
 

@@ -1,6 +1,3 @@
-from builtins import *
-from future.utils import iteritems
-
 from collections import defaultdict
 from copy import deepcopy
 from itertools import product

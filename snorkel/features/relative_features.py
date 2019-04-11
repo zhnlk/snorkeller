@@ -1,4 +1,3 @@
-from builtins import *
 from collections import defaultdict
 from functools import partial
 from string import punctuation

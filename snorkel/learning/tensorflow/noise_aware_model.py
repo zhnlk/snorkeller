@@ -1,5 +1,3 @@
-from builtins import *
-
 import tensorflow as tf
 import numpy as np
 from time import time

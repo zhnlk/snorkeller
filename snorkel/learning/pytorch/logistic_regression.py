@@ -1,6 +1,3 @@
-
-from builtins import *
-
 import numpy as np
 from scipy.sparse import issparse
 import torch

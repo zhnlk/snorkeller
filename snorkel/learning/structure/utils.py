@@ -1,6 +1,3 @@
-
-from builtins import *
-
 from .constants import *
 import random
 

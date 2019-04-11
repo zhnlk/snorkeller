@@ -2,7 +2,6 @@
 # to candidate_subclass, which ultimately calls type(...). So this import can be
 # re-added when Python 2 is no longer supported.
 # from __future__ import unicode_literals
-from builtins import *
 import os
 import unittest
 

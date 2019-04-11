@@ -1,6 +1,3 @@
-from builtins import *
-from future.utils import iteritems
-
 import pickle
 
 from snorkel.models import Sentence, Span

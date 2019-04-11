@@ -1,7 +1,3 @@
-
-
-from builtins import *
-
 from sqlalchemy import Column, ForeignKey, Integer, String
 
 from snorkel.models import Context

@@ -1,5 +1,3 @@
-from builtins import *
-
 from snorkel.models import GoldLabel, GoldLabelKey, StableLabel
 
 try:

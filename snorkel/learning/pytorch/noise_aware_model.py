@@ -1,17 +1,14 @@
-from builtins import *
-
 import os
 from time import time
 
 import numpy as np
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 
 from snorkel.learning.classifier import Classifier
-from snorkel.learning.utils import reshape_marginals, LabelBalancer
+from snorkel.learning.utils import LabelBalancer, reshape_marginals
 
 
 def cross_entropy_loss(input, target):
@@ -29,6 +26,7 @@ class TorchNoiseAwareModel(Classifier, nn.Module):
     
     :param n_threads: Parallelism to use; single-threaded if None
     """
+
     def __init__(self, n_threads=None, **kwargs):
         Classifier.__init__(self, **kwargs)
         nn.Module.__init__(self)
@@ -38,7 +36,7 @@ class TorchNoiseAwareModel(Classifier, nn.Module):
     def _check_input(self, X):
         """Checks correctness of input; optional to implement."""
         pass
-    
+
     def _check_model(self, lr):
         if not hasattr(self, 'loss'):
             # Define loss and marginals ops
@@ -51,7 +49,7 @@ class TorchNoiseAwareModel(Classifier, nn.Module):
 
     def _build_model(self, **model_kwargs):
         raise NotImplementedError
-    
+
     def marginals(self, X, batch_size=None):
         """
         Computes class probabilities for input data.
@@ -94,7 +92,7 @@ class TorchNoiseAwareModel(Classifier, nn.Module):
 
         self.cardinality, self.name, self.model_kwargs = torch.load('{}/model.kwargs'.format(model_dir))
         self._build_model(**self.model_kwargs)
-        
+
         self.load_state_dict(
             torch.load('{}/model.params'.format(model_dir))
         )
@@ -105,7 +103,7 @@ class TorchNoiseAwareModel(Classifier, nn.Module):
                 self.name, model_name))
 
     def save(self, model_name=None, save_dir='checkpoints', verbose=True,
-        global_step=0):
+             global_step=0):
         """Save current model."""
         model_name = model_name or self.name
 
@@ -119,10 +117,10 @@ class TorchNoiseAwareModel(Classifier, nn.Module):
 
         if verbose:
             print("[{0}] Model saved as <{1}>".format(self.name, model_name))
-        
+
     def train(self, X_train, Y_train, n_epochs=25, lr=0.01, batch_size=64,
-        rebalance=False, X_dev=None, Y_dev=None, print_freq=1, dev_ckpt=True,
-        dev_ckpt_delay=0.75, save_dir='checkpoints', seed=123, use_cudnn=True, **kwargs):
+              rebalance=False, X_dev=None, Y_dev=None, print_freq=1, dev_ckpt=True,
+              dev_ckpt_delay=0.75, save_dir='checkpoints', seed=123, use_cudnn=True, **kwargs):
         """
         Generic training procedure for PyTorch model
 
@@ -167,15 +165,15 @@ class TorchNoiseAwareModel(Classifier, nn.Module):
         torch.backends.cudnn.enabled = use_cudnn
 
         self._check_input(X_train)
-        
+
         verbose = print_freq > 0
 
         # Check that the cardinality of the training marginals and model agree
         cardinality = Y_train.shape[1] if len(Y_train.shape) > 1 else 2
         if cardinality != self.cardinality:
-            raise ValueError("Training marginals cardinality ({0}) does not"
-                "match model cardinality ({1}).".format(Y_train.shape[1], 
-                    self.cardinality))
+            raise ValueError(
+                "Training marginals cardinality ({0}) does not match model cardinality ({1}).".format(Y_train.shape[1],
+                                                                                                      self.cardinality))
 
         # Make sure marginals are in correct default format
         Y_train = reshape_marginals(Y_train)
@@ -190,8 +188,7 @@ class TorchNoiseAwareModel(Classifier, nn.Module):
         # Note: rebalancing only for binary setting currently
         if self.cardinality == 2:
             # This removes unlabeled examples and optionally rebalances
-            train_idxs = LabelBalancer(Y_train).get_train_idxs(rebalance,
-                rand_state=random_state)
+            train_idxs = LabelBalancer(Y_train).get_train_idxs(rebalance, rand_state=random_state)
         else:
             # In categorical setting, just remove unlabeled
             diffs = Y_train.max(axis=1) - Y_train.min(axis=1)
@@ -200,7 +197,7 @@ class TorchNoiseAwareModel(Classifier, nn.Module):
         self.model_kwargs = kwargs
         self._build_model(**kwargs)
         self._check_model(lr)
-        
+
         n = len(train_idxs)
         if verbose:
             st = time()
@@ -214,7 +211,7 @@ class TorchNoiseAwareModel(Classifier, nn.Module):
 
         # Run mini-batch SGD
         for epoch in range(n_epochs):
-    
+
             # Shuffle training data
             train_idxs = random_state.permutation(list(range(n)))
             Y_train = Y_train[train_idxs]
@@ -223,54 +220,53 @@ class TorchNoiseAwareModel(Classifier, nn.Module):
             except:
                 X_train = [X_train[j] for j in train_idxs]
 
-            batch_size = min(batch_state, n) 
+            batch_size = min(batch_state, n)
             epoch_losses = []
 
             nn.Module.train(self)
             for batch in range(0, n, batch_size):
-                
+
                 # zero gradients for each batch
                 self.optimizer.zero_grad()
-                
-                if batch_size > len(X_train[batch:batch+batch_size]):
-                    batch_size = len(X_train[batch:batch+batch_size])
+
+                if batch_size > len(X_train[batch:batch + batch_size]):
+                    batch_size = len(X_train[batch:batch + batch_size])
 
                 output = self._pytorch_outputs(X_train[batch:batch + batch_size], None)
-                
-                #Calculate loss
-                calculated_loss = self.loss(output, torch.Tensor(Y_train[batch:batch+batch_size]))
-                
-                #Compute gradient
+
+                # Calculate loss
+                calculated_loss = self.loss(output, torch.Tensor(Y_train[batch:batch + batch_size]))
+
+                # Compute gradient
                 calculated_loss.backward()
-                
-                #Step on the optimizer
+
+                # Step on the optimizer
                 self.optimizer.step()
-                
+
                 epoch_losses.append(calculated_loss)
-            
+
             # Print training stats and optionally checkpoint model
-            if verbose and (epoch % print_freq == 0 or epoch in [0, (n_epochs-1)]):
-                msg = "[{0}] Epoch {1} ({2:.2f}s)\tAverage loss={3:.6f}".format(
-                    self.name, epoch+1, time() - st, torch.stack(epoch_losses).mean())
-                
+            if verbose and (epoch % print_freq == 0 or epoch in [0, (n_epochs - 1)]):
+                msg = "[{0}] Epoch {1} ({2:.2f}s)\tAverage loss={3:.6f}".format(self.name, epoch + 1, time() - st,
+                                                                                torch.stack(epoch_losses).mean())
+
                 if X_dev is not None:
                     scores = self.score(X_dev, Y_dev, batch_size=batch_state)
                     score = scores if self.cardinality > 2 else scores[-1]
                     score_label = "Acc." if self.cardinality > 2 else "F1"
                     msg += '\tDev {0}={1:.2f}'.format(score_label, 100. * score)
                 print(msg)
-                    
+
                 # If best score on dev set so far and dev checkpointing is
                 # active, save checkpoint
-                if X_dev is not None and dev_ckpt and \
-                    epoch > dev_ckpt_delay * n_epochs and score > dev_score_opt:
+                if X_dev is not None and dev_ckpt and epoch > dev_ckpt_delay * n_epochs and score > dev_score_opt:
                     dev_score_opt = score
                     self.save(save_dir=save_dir, global_step=epoch)
 
         # Conclude training
         if verbose:
-            print("[{0}] Training done ({1:.2f}s)".format(self.name, time()-st))
-        
+            print("[{0}] Training done ({1:.2f}s)".format(self.name, time() - st))
+
         # If checkpointing on, load last checkpoint (i.e. best on dev set)
         if dev_ckpt and X_dev is not None and verbose and dev_score_opt > 0:
             self.load(save_dir=save_dir)

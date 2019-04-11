@@ -1,7 +1,4 @@
 # -*- coding: utf-8 -*-
-from builtins import *
-from future.utils import iteritems
-
 import os
 import sys
 import json

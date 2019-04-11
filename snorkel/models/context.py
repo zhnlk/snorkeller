@@ -1,6 +1,3 @@
-
-from builtins import *
-
 from snorkel.models.meta import SnorkelBase, snorkel_postgres
 from sqlalchemy import Column, String, Integer, Text, ForeignKey, UniqueConstraint
 from sqlalchemy.dialects import postgresql

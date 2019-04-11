@@ -1,13 +1,9 @@
-from future import standard_library
-
-standard_library.install_aliases()
-from builtins import *
-
-from multiprocessing import Process, JoinableQueue
+from multiprocessing import JoinableQueue, Process
 from queue import Empty
 
-from snorkel.models.meta import new_sessionmaker, snorkel_conn_string
 from tqdm import tqdm
+
+from snorkel.models.meta import new_sessionmaker, snorkel_conn_string
 
 
 class UDFRunner(object):

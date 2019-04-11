@@ -1,5 +1,3 @@
-from builtins import *
-
 import numpy as np
 
 from .rnn_base import RNNBase

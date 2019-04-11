@@ -1,6 +1,3 @@
-
-from builtins import *
-
 import numpy as np
 from .utils import MentionScorer
 from ..annotations import save_marginals

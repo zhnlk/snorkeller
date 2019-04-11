@@ -1,5 +1,3 @@
-from builtins import *
-
 from . import SparkModel
 from snorkel.models import TemporarySpan
 

@@ -1,9 +1,6 @@
-
-from builtins import *
 from functools import partial
 
-from models.candidate import wrap_candidate
-
+from .models.candidate import wrap_candidate
 from snorkel.annotations import load_label_matrix
 from snorkel.models.annotation import Label, LabelKey
 from snorkel.models.meta import snorkel_conn_string

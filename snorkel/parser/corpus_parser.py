@@ -1,5 +1,3 @@
-from builtins import *
-
 from snorkel.parser.spacy_parser import Spacy
 from snorkel.models import Candidate, Context, Sentence
 from snorkel.udf import UDF, UDFRunner

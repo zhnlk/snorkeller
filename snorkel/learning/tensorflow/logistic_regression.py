@@ -1,5 +1,3 @@
-from builtins import *
-
 import numpy as np
 import tensorflow as tf
 from scipy.sparse import issparse

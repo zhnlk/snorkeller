@@ -1,4 +1,3 @@
-from builtins import *
 import random
 from copy import copy
 from distutils.version import StrictVersion

@@ -1,5 +1,3 @@
-from builtins import *
-
 from numbskull import NumbSkull
 from numbskull.inference import FACTORS
 from numbskull.numbskulltypes import Weight, Variable, Factor, FactorToVar

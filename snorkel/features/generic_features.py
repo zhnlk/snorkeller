@@ -1,5 +1,3 @@
-
-from builtins import *
 from functools import partial
 
 
