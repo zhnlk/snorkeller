@@ -41,11 +41,11 @@ class TestGenLearning(unittest.TestCase):
                                     lf_propensity=False, lf_class_propensity=False)
         gen_model._process_dependency_graph(L, ())
         m, n = L.shape
-        LF_acc_prior_weights = [1.0 for _ in range(n)]
+        lf_acc_prior_weights = [1.0 for _ in range(n)]
         is_fixed = [False for _ in range(n)]
         gen_model.cardinality = 2
         cardinalities = 2 * np.ones(5)
-        weight, variable, factor, ftv, domain_mask, n_edges = gen_model._compile(L, 0.5, 0.0, LF_acc_prior_weights,
+        weight, variable, factor, ftv, domain_mask, n_edges = gen_model._compile(L, 0.5, 0.0, lf_acc_prior_weights,
                                                                                  is_fixed, cardinalities)
         #
         # Weights
@@ -175,13 +175,12 @@ class TestGenLearning(unittest.TestCase):
                                     lf_propensity=True, lf_class_propensity=False)
         gen_model._process_dependency_graph(L, deps)
         m, n = L.shape
-        LF_acc_prior_weights = [1.0 for _ in range(n)]
+        lf_acc_prior_weights = [1.0 for _ in range(n)]
         is_fixed = [False for _ in range(n)]
         gen_model.cardinality = 2
         cardinalities = 2 * np.ones(5)
-        weight, variable, factor, ftv, domain_mask, n_edges = \
-            gen_model._compile(L, 0.5, -1.0, LF_acc_prior_weights, is_fixed,
-                               cardinalities)
+        weight, variable, factor, ftv, domain_mask, n_edges = gen_model._compile(L, 0.5, -1.0, lf_acc_prior_weights,
+                                                                                 is_fixed, cardinalities)
 
         #
         # Weights

@@ -25,9 +25,9 @@ class TestDeterminism(PyTorchTestBase):
         lstm2 = LSTM()
         lstm2.train(self.train_cands, self.train_marginals, **train_kwargs)
 
-        self.assertTrue(torch.sum(torch.abs(
-            lstm1.output_layer.weight.data - lstm2.output_layer.weight.data
-        )) < 1e-4)
+        torch_sum = torch.sum(torch.abs(lstm1.output_layer.weight.data - lstm2.output_layer.weight.data))
+
+        self.assertTrue(torch_sum < 1e-4)
 
 
 if __name__ == '__main__':

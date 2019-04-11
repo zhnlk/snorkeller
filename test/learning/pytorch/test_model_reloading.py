@@ -9,16 +9,10 @@ from snorkel.learning.pytorch import LSTM
 class TestModelReloading(PyTorchTestBase):
 
     def test_lstm_reloading(self):
-        train_kwargs = {
-            'lr': 0.01,
-            'embedding_dim': 50,
-            'hidden_dim': 50,
-            'n_epochs': 2,
-            'dropout': 0.25
-        }
+        train_kwargs = {'lr': 0.01, 'embedding_dim': 50, 'hidden_dim': 50,
+                        'n_epochs': 2, 'dropout': 0.25,
+                        'num_layers': 1, 'bidirectional': False}
 
-        train_kwargs['num_layers'] = 1
-        train_kwargs['bidirectional'] = False
         lstm1 = LSTM()
         lstm1.train(self.train_cands, self.train_marginals, **train_kwargs)
         marginals1_before = lstm1.marginals(self.test_cands)

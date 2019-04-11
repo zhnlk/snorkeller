@@ -50,7 +50,7 @@ class GenerativeModel(Classifier):
         if StrictVersion(numbskull_version) < StrictVersion(numbskull_require):
             raise ValueError(
                 "Snorkel requires Numbskull version %s, but version %s is installed." % (
-                numbskull_require, numbskull_version))
+                    numbskull_require, numbskull_version))
 
         self.class_prior = class_prior
         self.lf_prior = lf_prior
@@ -76,9 +76,8 @@ class GenerativeModel(Classifier):
         'dep_similar', 'dep_fixing', 'dep_reinforcing', 'dep_exclusive'
     )
 
-    def train(self, L, deps=(), LF_acc_prior_weights=None,
-              LF_acc_prior_weight_default=1, labels=None, label_prior_weight=5,
-              init_deps=0.0, init_class_prior=-1.0, epochs=30, step_size=None,
+    def train(self, L, deps=(), lf_acc_prior_weights=None, lf_acc_prior_weight_default=1, labels=None,
+              label_prior_weight=5, init_deps=0.0, init_class_prior=-1.0, epochs=30, step_size=None,
               decay=1.0, reg_param=0.1, reg_type=2, verbose=False, truncation=10,
               burn_in=5, cardinality=None, timer=None, candidate_ranges=None, threads=1):
         """
@@ -96,10 +95,10 @@ class GenerativeModel(Classifier):
                      element is a tuple of the form 
                      (LF 1 index, LF 2 index, dependency type),
                      see snorkel.learning.constants
-        :param LF_acc_prior_weights: An N-element list of prior weights for the
+        :param lf_acc_prior_weights: An N-element list of prior weights for the
             LF accuracies (log scale)
-        :param LF_acc_prior_weight_default: Default prior for the weight of each 
-            LF accuracy; if LF_acc_prior_weights is unset, each LF will have 
+        :param lf_acc_prior_weight_default: Default prior for the weight of each
+            LF accuracy; if lf_acc_prior_weights is unset, each LF will have
             this accuracy prior weight (log scale)
         :param labels: Optional ground truth labels
         :param label_prior_weight: The prior probability that the ground truth 
@@ -169,10 +168,10 @@ class GenerativeModel(Classifier):
         # Priors for LFs default to fixed prior value
         # NOTE: Setting default != 0.5 creates a (fixed) factor which increases
         # runtime (by ~0.5x that of a non-fixed factor)...
-        if LF_acc_prior_weights is None:
-            LF_acc_prior_weights = [LF_acc_prior_weight_default for _ in range(n)]
+        if lf_acc_prior_weights is None:
+            lf_acc_prior_weights = [lf_acc_prior_weight_default for _ in range(n)]
         else:
-            LF_acc_prior_weights = list(copy(LF_acc_prior_weights))
+            lf_acc_prior_weights = list(copy(lf_acc_prior_weights))
 
         # LF weights are un-fixed
         is_fixed = [False for _ in range(n)]
@@ -184,7 +183,7 @@ class GenerativeModel(Classifier):
             labels = labels.reshape(m, 1)
             L = sparse.hstack([L, labels])
             is_fixed.append(True)
-            LF_acc_prior_weights.append(label_prior_weight)
+            lf_acc_prior_weights.append(label_prior_weight)
             n += 1
 
         # Reduce overhead of tracking indices by converting L to a CSR sparse matrix.
@@ -215,7 +214,7 @@ class GenerativeModel(Classifier):
         # Compile factor graph
         self._process_dependency_graph(L, deps)
         weight, variable, factor, ftv, domain_mask, n_edges = self._compile(
-            L, init_deps, init_class_prior, LF_acc_prior_weights, is_fixed, self.cardinalities)
+            L, init_deps, init_class_prior, lf_acc_prior_weights, is_fixed, self.cardinalities)
         fg = NumbSkull(
             n_inference_epoch=0,
             n_learning_epoch=epochs,
@@ -237,7 +236,7 @@ class GenerativeModel(Classifier):
         fg.learning(out=False)
         if timer is not None:
             timer.end()
-        self._process_learned_weights(L, fg, LF_acc_prior_weights, is_fixed)
+        self._process_learned_weights(L, fg, lf_acc_prior_weights, is_fixed)
 
         # Store info from factor graph
         if self.candidate_ranges is not None:
@@ -245,10 +244,11 @@ class GenerativeModel(Classifier):
         else:
             self.cardinality_for_stats = self.cardinality
         self.learned_weights = fg.factorGraphs[0].weight_value
-        weight, variable, factor, ftv, domain_mask, n_edges = \
-            self._compile(sparse.coo_matrix((1, n), L.dtype), init_deps,
-                          init_class_prior, LF_acc_prior_weights, is_fixed,
-                          [self.cardinality_for_stats])
+        weight, variable, factor, ftv, domain_mask, n_edges = self._compile(sparse.coo_matrix((1, n), L.dtype),
+                                                                            init_deps,
+                                                                            init_class_prior, lf_acc_prior_weights,
+                                                                            is_fixed,
+                                                                            [self.cardinality_for_stats])
 
         variable["isEvidence"] = False
         weight["isFixed"] = True
@@ -512,7 +512,7 @@ class GenerativeModel(Classifier):
         for dep_name in GenerativeModel.dep_names:
             setattr(self, dep_name, getattr(self, dep_name).tocoo(copy=True))
 
-    def _compile(self, L, init_deps, init_class_prior, LF_acc_prior_weights, is_fixed, cardinalities):
+    def _compile(self, L, init_deps, init_class_prior, lf_acc_prior_weights, is_fixed, cardinalities):
         """Compiles a generative model based on L and the current labeling function
         dependencies.
         """
@@ -520,7 +520,7 @@ class GenerativeModel(Classifier):
 
         n_weights = 1 if self.class_prior else 0
 
-        self.hasPrior = [i != 0 for i in LF_acc_prior_weights]
+        self.hasPrior = [i != 0 for i in lf_acc_prior_weights]
         nPrior = sum(self.hasPrior)
         nUnFixed = sum([not i for i in is_fixed])
 
@@ -567,7 +567,7 @@ class GenerativeModel(Classifier):
             # Prior on LF acc
             if self.hasPrior[i]:
                 weight[w_off]['isFixed'] = True
-                weight[w_off]['initialValue'] = LF_acc_prior_weights[i]
+                weight[w_off]['initialValue'] = lf_acc_prior_weights[i]
                 w_off += 1
             # Learnable acc for LF
             if (not is_fixed[i]):
@@ -783,7 +783,7 @@ class GenerativeModel(Classifier):
 
         return factors_offset + m, ftv_offset + len(vid_funcs) * m, weight_offset + 1
 
-    def _process_learned_weights(self, L, fg, LF_acc_prior_weights, is_fixed):
+    def _process_learned_weights(self, L, fg, lf_acc_prior_weights, is_fixed):
         _, n = L.shape
 
         w = fg.getFactorGraph().getWeights()

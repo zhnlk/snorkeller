@@ -3,6 +3,7 @@
 /.virtualenv
 .ipynb_checkpoints
 *.pyc
+.pytest_cache/
 parser/
 /stanford-corenlp-*
 *.db*
