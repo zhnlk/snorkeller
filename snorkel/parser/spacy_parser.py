@@ -1,12 +1,9 @@
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
 from builtins import *
-
-import pkg_resources
 from pathlib import Path
 from collections import defaultdict
+
+import pkg_resources
+
 from snorkel.models import construct_stable_id
 from snorkel.parser.parser import Parser, ParserConnection
 
@@ -14,6 +11,7 @@ try:
     import spacy
     from spacy.cli import download
     from spacy import util
+
     try:
         spacy_version = int(spacy.__version__[0])
     except:
@@ -54,6 +52,7 @@ class Spacy(Parser):
     CARDINAL	Numerals that do not fall under another type.
 
     '''
+
     def __init__(self, annotators=['tagger', 'parser', 'entity'],
                  lang='en', num_threads=1, verbose=False):
 
@@ -66,7 +65,7 @@ class Spacy(Parser):
             for proc in annotators:
                 self.pipeline += [self.model.__dict__[proc]]
         else:
-            annotators=[i if i != 'entity' else 'ner' for i in annotators]
+            annotators = [i if i != 'entity' else 'ner' for i in annotators]
             for i, proc in enumerate(annotators):
                 self.pipeline += [self.model.pipeline[i][1]]
 
@@ -101,9 +100,9 @@ class Spacy(Parser):
             raise IOError("Can't find spaCy data path: %s" % str(data_path))
         if name in set([d.name for d in data_path.iterdir()]):
             return True
-        if Spacy.is_package(name): # installed as package
+        if Spacy.is_package(name):  # installed as package
             return True
-        if Path(name).exists(): # path to model data directory
+        if Path(name).exists():  # path to model data directory
             return True
         return False
 
@@ -149,7 +148,7 @@ class Spacy(Parser):
             parts = defaultdict(list)
             text = sent.text
 
-            for i,token in enumerate(sent):
+            for i, token in enumerate(sent):
                 parts['words'].append(str(token))
                 parts['lemmas'].append(token.lemma_)
                 parts['pos_tags'].append(token.tag_)

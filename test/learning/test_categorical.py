@@ -1,17 +1,12 @@
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
 from builtins import *
-
-import math
-from numbskull.inference import FACTORS
-from scipy import sparse
-from snorkel.learning.gen_learning import GenerativeModel, DEP_EXCLUSIVE, DEP_REINFORCING, DEP_FIXING, DEP_SIMILAR
 import unittest
 import random
-import numpy as np
 from time import time
+
+from scipy import sparse
+import numpy as np
+
+from snorkel.learning.gen_learning import GenerativeModel
 
 
 class TestCategorical(unittest.TestCase):
@@ -31,11 +26,12 @@ class TestCategorical(unittest.TestCase):
 
         Returns a CSR_sparse label matrix L and supervised labels array.
         """
+
         def get_lf(label, cardinality, acc):
             if random.random() < acc:
                 return label + 1
             lf = random.randint(0, cardinality - 2)
-            if (lf >= label):
+            if lf >= label:
                 lf += 1
             return lf + 1
 
@@ -65,7 +61,7 @@ class TestCategorical(unittest.TestCase):
         return sparse.csr_matrix(L), labels
 
     def _generate_L_scoped_categorical(self, LF_acc_priors,
-        per_candidate_cardinality=4, full_cardinality=4, n=10000):
+                                       per_candidate_cardinality=4, full_cardinality=4, n=10000):
         """
         Generate label matrix and ground truth labels given LF acc prior 
         probabilities, a "full" cardinality of the problem, and a per-candidate
@@ -107,8 +103,8 @@ class TestCategorical(unittest.TestCase):
         # Return as CSR sparse matrix
         return sparse.csr_matrix(L), labels, candidate_ranges
 
-    def _test_categorical(self, L, LF_acc_priors, labels, label_prior=1, 
-        candidate_ranges=None, cardinality=4, tol=0.1, n=10000):
+    def _test_categorical(self, L, LF_acc_priors, labels, label_prior=1,
+                          candidate_ranges=None, cardinality=4, tol=0.1, n=10000):
         """Run a suite of tests."""
         # Map to log scale weights
         LF_acc_prior_weights = [0.5 * np.log((cardinality - 1.0) * x / (1 - x)) for x in LF_acc_priors]
@@ -132,7 +128,7 @@ class TestCategorical(unittest.TestCase):
         print(gen_model.weights.lf_propensity)
         priors = np.array(LF_acc_priors + [label_prior])
         self.assertTrue(np.all(np.abs(accs - priors) < tol))
-        print("Finished in {0} sec.".format(time()-t0))
+        print("Finished in {0} sec.".format(time() - t0))
 
         # Now test that estimated LF accs are not too far off
         print("\nTesting estimated LF accs (TOL=%s)" % tol)
@@ -153,7 +149,7 @@ class TestCategorical(unittest.TestCase):
         priors = np.array(LF_acc_priors + [label_prior])
         self.assertTrue(np.all(np.abs(accs - priors) < tol))
         self.assertTrue(np.all(np.abs(coverage - np.array([1, 1, 1, 1, 0.2, 0.1]) < tol)))
-        print("Finished in {0} sec.".format(time()-t0))
+        print("Finished in {0} sec.".format(time() - t0))
 
         # Test without supervised
         print("\nTesting without supervised")
@@ -168,7 +164,7 @@ class TestCategorical(unittest.TestCase):
         priors = np.array(LF_acc_priors)
         self.assertTrue(np.all(np.abs(accs - priors) < tol))
         self.assertTrue(np.all(np.abs(coverage - np.array([1, 1, 1, 1, 0.2]) < tol)))
-        print("Finished in {0} sec.".format(time()-t0))
+        print("Finished in {0} sec.".format(time() - t0))
 
         # Test with supervised
         print("\nTesting with supervised, without priors")
@@ -188,7 +184,7 @@ class TestCategorical(unittest.TestCase):
         priors = np.array(LF_acc_priors + [label_prior])
         self.assertTrue(np.all(np.abs(accs - priors) < tol))
         self.assertTrue(np.all(np.abs(coverage - np.array([1, 1, 1, 1, 0.2, 0.1]) < tol)))
-        print("Finished in {0} sec.".format(time()-t0))
+        print("Finished in {0} sec.".format(time() - t0))
 
         # Test without supervised, and (intentionally) bad priors, but weak strength
         print("\nTesting without supervised, with bad priors (weak)")
@@ -209,7 +205,7 @@ class TestCategorical(unittest.TestCase):
         print(coverage)
         priors = np.array(LF_acc_priors)
         self.assertTrue(np.all(np.abs(accs - priors) < tol))
-        print("Finished in {0} sec.".format(time()-t0))
+        print("Finished in {0} sec.".format(time() - t0))
 
         # Test without supervised, and (intentionally) bad priors
         print("\nTesting without supervised, with bad priors (strong)")
@@ -227,7 +223,7 @@ class TestCategorical(unittest.TestCase):
         coverage = stats["Coverage"]
         print(accs)
         self.assertTrue(np.all(np.abs(accs - np.array(bad_prior)) < tol))
-        print("Finished in {0} sec.".format(time()-t0))
+        print("Finished in {0} sec.".format(time() - t0))
 
     def test_categorical(self):
         LF_acc_priors = [0.75, 0.75, 0.75, 0.75, 0.9]
@@ -243,7 +239,7 @@ class TestCategorical(unittest.TestCase):
             LF_acc_priors)
         print("Running tests for scoped-categorical (K=4)...")
         self._test_categorical(L, LF_acc_priors, labels,
-            candidate_ranges=candidate_ranges)
+                               candidate_ranges=candidate_ranges)
 
     # def test_scoped_categorical_large(self):
     #     LF_acc_priors = [0.75, 0.75, 0.75, 0.75, 0.9]
@@ -253,6 +249,7 @@ class TestCategorical(unittest.TestCase):
     #     print("Running tests for scoped-categorical (K=100)...")
     #     self._test_categorical(L, LF_acc_priors, labels,
     #         candidate_ranges=candidate_ranges)
+
 
 if __name__ == '__main__':
     unittest.main()

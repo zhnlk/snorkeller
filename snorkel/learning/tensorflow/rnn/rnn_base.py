@@ -1,17 +1,12 @@
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
+from builtins import *
+import warnings
 
 import numpy as np
 import tensorflow as tf
-from builtins import *
-
-import warnings
 
 from snorkel.learning.tensorflow.noise_aware_model import TFNoiseAwareModel
 from snorkel.models import Candidate
-from .utils import get_bi_rnn_output, SymbolTable
+from .utils import SymbolTable, get_bi_rnn_output
 
 SD = 0.1
 
@@ -41,17 +36,17 @@ class RNNBase(TFNoiseAwareModel):
             current batch and an array of true sentence lengths
         """
         batch_size = len(x)
-        x_batch    = np.zeros((batch_size, self.max_len), dtype=np.int32)
-        len_batch  = np.zeros(batch_size, dtype=np.int32)
+        x_batch = np.zeros((batch_size, self.max_len), dtype=np.int32)
+        len_batch = np.zeros(batch_size, dtype=np.int32)
         for j, token_ids in enumerate(x):
-            t               = min(len(token_ids), self.max_len)
+            t = min(len(token_ids), self.max_len)
             x_batch[j, 0:t] = token_ids[0:t]
-            len_batch[j]    = t
+            len_batch[j] = t
         return x_batch, len_batch
 
     def _build_model(self, dim=50, attn_window=None, max_len=20,
-        cell_type=tf.contrib.rnn.BasicLSTMCell, word_dict=SymbolTable(), 
-        **kwargs):
+                     cell_type=tf.contrib.rnn.BasicLSTMCell, word_dict=SymbolTable(),
+                     **kwargs):
         """
         Build RNN model
         
@@ -67,19 +62,19 @@ class RNNBase(TFNoiseAwareModel):
         vocab_size = word_dict.len()
 
         # Define input layers
-        self.sentences        = tf.placeholder(tf.int32, [None, None])
+        self.sentences = tf.placeholder(tf.int32, [None, None])
         self.sentence_lengths = tf.placeholder(tf.int32, [None])
 
         # Seeds
         s = self.seed
-        s1, s2, s3, s4 = [None] * 4 if s is None else [s+i for i in range(4)]
+        s1, s2, s3, s4 = [None] * 4 if s is None else [s + i for i in range(4)]
 
         # Embedding layer
         emb_var = tf.Variable(
             tf.random_normal((vocab_size - 1, dim), stddev=SD, seed=s1))
         embedding = tf.concat([tf.zeros([1, dim]), emb_var], axis=0)
         inputs = tf.nn.embedding_lookup(embedding, self.sentences)
-        
+
         # Build RNN graph
         batch_size = tf.shape(self.sentences)[0]
         init = tf.contrib.layers.xavier_initializer(seed=s2)
@@ -103,10 +98,10 @@ class RNNBase(TFNoiseAwareModel):
                 sequence_length=self.sentence_lengths,
                 initial_state_fw=initial_state_fw,
                 initial_state_bw=initial_state_bw,
-                time_major=False               
+                time_major=False
             )
         potentials = get_bi_rnn_output(rnn_out, dim, self.sentence_lengths)
-        
+
         # Add dropout layer
         self.keep_prob = tf.placeholder(tf.float32)
         potentials_dropout = tf.nn.dropout(potentials, self.keep_prob, seed=s3)
@@ -114,14 +109,14 @@ class RNNBase(TFNoiseAwareModel):
         # Build activation layer
         if self.cardinality > 2:
             self.Y = tf.placeholder(tf.float32, [None, self.cardinality])
-            W = tf.Variable(tf.random_normal((2*dim, self.cardinality), 
-                stddev=SD, seed=s4))
+            W = tf.Variable(tf.random_normal((2 * dim, self.cardinality),
+                                             stddev=SD, seed=s4))
             b = tf.Variable(np.zeros(self.cardinality), dtype=tf.float32)
             self.logits = tf.matmul(potentials_dropout, W) + b
             self.marginals_op = tf.nn.softmax(self.logits)
         else:
             self.Y = tf.placeholder(tf.float32, [None])
-            W = tf.Variable(tf.random_normal((2*dim, 1), stddev=SD, seed=s4))
+            W = tf.Variable(tf.random_normal((2 * dim, 1), stddev=SD, seed=s4))
 
             # TODO: Implement for categorical as well...
             if self.deterministic:
@@ -146,15 +141,15 @@ class RNNBase(TFNoiseAwareModel):
     def _construct_feed_dict(self, X_b, Y_b, lr=0.01, dropout=None, **kwargs):
         X_b, len_b = self._make_tensor(X_b)
         return {
-            self.sentences:        X_b,
+            self.sentences: X_b,
             self.sentence_lengths: len_b,
-            self.Y:                Y_b,
-            self.keep_prob:        dropout or 1.0,
-            self.lr:               lr
+            self.Y: Y_b,
+            self.keep_prob: dropout or 1.0,
+            self.lr: lr
         }
 
-    def train(self, X_train, Y_train, X_dev=None, max_sentence_length=None, 
-        **kwargs):
+    def train(self, X_train, Y_train, X_dev=None, max_sentence_length=None,
+              **kwargs):
         """
         Perform preprocessing of data, construct dataset-specific model, then
         train.
@@ -163,14 +158,14 @@ class RNNBase(TFNoiseAwareModel):
         X_train, ends = self._preprocess_data(X_train, extend=True)
         if X_dev is not None:
             X_dev, _ = self._preprocess_data(X_dev, extend=False)
-        
+
         # Get max sentence size
         max_len = max_sentence_length or max(len(x) for x in X_train)
         self._check_max_sentence_length(ends, max_len=max_len)
-        
+
         # Train model- note we pass word_dict through here so it gets saved...
         super(RNNBase, self).train(X_train, Y_train, X_dev=X_dev,
-            word_dict=self.word_dict, max_len=max_len, **kwargs)
+                                   word_dict=self.word_dict, max_len=max_len, **kwargs)
 
     def _marginals_batch(self, test_candidates):
         """Get likelihood of tagged sequences represented by test_candidates
@@ -186,7 +181,7 @@ class RNNBase(TFNoiseAwareModel):
         # Make tensor and run prediction op
         x, x_len = self._make_tensor(X_test)
         return self.session.run(self.marginals_op, {
-            self.sentences:        x,
+            self.sentences: x,
             self.sentence_lengths: x_len,
-            self.keep_prob:        1.0,
+            self.keep_prob: 1.0,
         })

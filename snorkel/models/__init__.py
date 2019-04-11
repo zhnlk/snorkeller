@@ -26,7 +26,7 @@ For example, the correct way to define a new type of Context is:
     from snorkel.models.meta import SnorkelBase, snorkel_engine
     SnorkelBase.metadata.create_all(snorkel_engine)
 """
-from __future__ import absolute_import
+
 
 from snorkel.models.meta import SnorkelBase, SnorkelSession, snorkel_engine, snorkel_postgres
 from snorkel.models.context import Context, Document, Sentence, TemporarySpan, Span, TemporaryDocument

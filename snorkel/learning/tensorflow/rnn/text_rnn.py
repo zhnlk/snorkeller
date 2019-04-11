@@ -1,7 +1,3 @@
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
 from builtins import *
 
 import numpy as np
@@ -12,6 +8,7 @@ from .utils import SymbolTable
 
 class TextRNN(RNNBase):
     """TextRNN for strings of text."""
+
     def _preprocess_data(self, candidates, extend=False):
         """Convert candidate sentences to lookup sequences
         

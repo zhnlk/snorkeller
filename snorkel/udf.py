@@ -1,8 +1,5 @@
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
 from future import standard_library
+
 standard_library.install_aliases()
 from builtins import *
 
@@ -12,12 +9,14 @@ from queue import Empty
 from snorkel.models.meta import new_sessionmaker, snorkel_conn_string
 from tqdm import tqdm
 
+
 class UDFRunner(object):
     """Class to run UDFs in parallel using simple queue-based multiprocessing setup"""
+
     def __init__(self, udf_class, **udf_init_kwargs):
-        self.udf_class       = udf_class
+        self.udf_class = udf_class
         self.udf_init_kwargs = udf_init_kwargs
-        self.udfs            = []
+        self.udfs = []
         self.pb = None
 
         if hasattr(self.udf_class, 'reduce'):
@@ -54,7 +53,6 @@ class UDFRunner(object):
 
         if self.pb is not None:
             self.pb.close()
-
 
     def clear(self, session, **kwargs):
         raise NotImplementedError()
@@ -101,7 +99,7 @@ class UDFRunner(object):
         # Start UDF Processes
         for i in range(parallelism):
             udf = self.udf_class(in_queue=in_queue, out_queue=out_queue,
-                add_to_session=(self.reducer is None), **self.udf_init_kwargs)
+                                 add_to_session=(self.reducer is None), **self.udf_init_kwargs)
             udf.apply_kwargs = kwargs
             self.udfs.append(udf)
 
@@ -119,7 +117,7 @@ class UDFRunner(object):
                     self.pb.update(1)
 
             # If there is a reduce step, do now on this thread
-            elif self.reducer is not None: 
+            elif self.reducer is not None:
                 self.reducer.reduce(y, **kwargs)
                 out_queue.task_done()
 
@@ -136,6 +134,7 @@ class UDFRunner(object):
         # Flush the processes
         self.udfs = []
 
+
 class UDF(Process):
     TASK_DONE_SENTINEL = "done"
 
@@ -144,15 +143,15 @@ class UDF(Process):
         in_queue: A Queue of input objects to process; primarily for running in parallel
         """
         Process.__init__(self)
-        self.daemon         = True
-        self.in_queue       = in_queue
-        self.out_queue      = out_queue
+        self.daemon = True
+        self.in_queue = in_queue
+        self.out_queue = out_queue
         self.add_to_session = add_to_session
 
         # Each UDF starts its own Engine
         # See http://docs.sqlalchemy.org/en/latest/core/pooling.html#using-connection-pools-with-multiprocessing
         SnorkelSession = new_sessionmaker()
-        self.session   = SnorkelSession()
+        self.session = SnorkelSession()
 
         # We use a workaround to pass in the apply kwargs
         self.apply_kwargs = {}

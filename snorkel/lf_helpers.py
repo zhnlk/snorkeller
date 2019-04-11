@@ -1,16 +1,12 @@
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
 from builtins import *
+import re
+from itertools import chain
 
 import numpy as np
-import re
 
 from snorkel.annotations import load_gold_labels
 from snorkel.learning.utils import MentionScorer
-from snorkel.models import Span, Label, Candidate
-from itertools import chain
+from snorkel.models import Candidate
 from snorkel.utils import tokens_to_ngrams
 
 
@@ -27,7 +23,7 @@ def get_text_splits(c):
         # Note: {{0}}, {{1}}, etc. does not work as an un-escaped regex pattern,
         # hence A, B, ...
         try:
-            spans.append((span.char_start, span.char_end, chr(65+i)))
+            spans.append((span.char_start, span.char_end, chr(65 + i)))
         except AttributeError:
             raise ValueError(
                 "Only handles Contexts with char_start, char_end attributes.")
@@ -38,10 +34,10 @@ def get_text_splits(c):
 
     # Get text chunks
     chunks = [text[:spans[0][0]], "{{%s}}" % spans[0][2]]
-    for j in range(len(spans)-1):
-        chunks.append(text[spans[j][1]+1:spans[j+1][0]])
-        chunks.append("{{%s}}" % spans[j+1][2])
-    chunks.append(text[spans[-1][1]+1:])
+    for j in range(len(spans) - 1):
+        chunks.append(text[spans[j][1] + 1:spans[j + 1][0]])
+        chunks.append("{{%s}}" % spans[j + 1][2])
+    chunks.append(text[spans[-1][1] + 1:])
     return chunks
 
 
@@ -89,7 +85,7 @@ def get_between_tokens(c, attrib='words', n_max=1, case_sensitive=False):
         left_span = span1
         dist_btwn = span0.get_word_start() - span1.get_word_end() - 1
     return get_right_tokens(left_span, window=dist_btwn, attrib=attrib,
-        n_max=n_max, case_sensitive=case_sensitive)
+                            n_max=n_max, case_sensitive=case_sensitive)
 
 
 def get_left_tokens(c, window=3, attrib='words', n_max=1, case_sensitive=False):
@@ -108,11 +104,11 @@ def get_left_tokens(c, window=3, attrib='words', n_max=1, case_sensitive=False):
         i = span.get_word_start()
     f = (lambda w: w) if case_sensitive else (lambda w: w.lower())
     return tokens_to_ngrams(list(map(f,
-        span.get_parent()._asdict()[attrib][max(0, i-window):i])), n_max=n_max)
+                                     span.get_parent()._asdict()[attrib][max(0, i - window):i])), n_max=n_max)
 
 
 def get_right_tokens(c, window=3, attrib='words', n_max=1,
-    case_sensitive=False):
+                     case_sensitive=False):
     """
     Return the tokens within a window to the _right_ of the Candidate.
     For higher-arity Candidates, defaults to the _last_ argument.
@@ -128,7 +124,7 @@ def get_right_tokens(c, window=3, attrib='words', n_max=1,
         i = span.get_word_end()
     f = (lambda w: w) if case_sensitive else (lambda w: w.lower())
     return tokens_to_ngrams(list(map(f,
-        span.get_parent()._asdict()[attrib][i+1:i+1+window])), n_max=n_max)
+                                     span.get_parent()._asdict()[attrib][i + 1:i + 1 + window])), n_max=n_max)
 
 
 def contains_token(c, tok, attrib='words', case_sensitive=False):
@@ -142,7 +138,7 @@ def contains_token(c, tok, attrib='words', case_sensitive=False):
         spans = [c]
     f = (lambda w: w) if case_sensitive else (lambda w: w.lower())
     return f(tok) in set(chain.from_iterable(map(f, span.get_attrib_tokens(attrib))
-        for span in spans))
+                                             for span in spans))
 
 
 def get_doc_candidate_spans(c):
@@ -164,7 +160,7 @@ def get_sent_candidate_spans(c):
     return [s for s in c[0].get_parent().spans if s != c[0]]
 
 
-def get_matches(lf, candidate_set, match_values=[1,-1]):
+def get_matches(lf, candidate_set, match_values=[1, -1]):
     """
     A simple helper function to see how many matches (non-zero by default) an LF gets.
     Returns the matched set, which can then be directly put into the Viewer.
@@ -176,6 +172,7 @@ def get_matches(lf, candidate_set, match_values=[1,-1]):
             matches.append(c)
     print("%s matches" % len(matches))
     return matches
+
 
 def rule_text_btw(candidate, text, sign):
     return sign if text in get_text_between(candidate) else 0
@@ -204,13 +201,14 @@ def rule_regex_search_before_A(candidate, pattern, sign):
 def rule_regex_search_before_B(candidate, pattern, sign):
     return sign if re.search(pattern + r'{{B}}.*{{A}}', get_tagged_text(candidate), flags=re.I) else 0
 
+
 def test_LF(session, lf, split, annotator_name):
     """
     Gets the accuracy of a single LF on a split of the candidates, w.r.t. annotator labels,
     and also returns the error buckets of the candidates.
     """
     test_candidates = session.query(Candidate).filter(Candidate.split == split).all()
-    test_labels     = load_gold_labels(session, annotator_name=annotator_name, split=split)
-    scorer          = MentionScorer(test_candidates, test_labels)
-    test_marginals  = np.array([0.5 * (lf(c) + 1) for c in test_candidates])
+    test_labels = load_gold_labels(session, annotator_name=annotator_name, split=split)
+    scorer = MentionScorer(test_candidates, test_labels)
+    test_marginals = np.array([0.5 * (lf(c) + 1) for c in test_candidates])
     return scorer.score(test_marginals, set_unlabeled_as_neg=False, set_at_thresh_as_neg=False)

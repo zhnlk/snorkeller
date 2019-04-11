@@ -1,19 +1,15 @@
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
 from builtins import *
 
 import numpy as np
 
 from .rnn_base import RNNBase
-from .utils import candidate_to_tokens, SymbolTable
-
+from .utils import SymbolTable, candidate_to_tokens
 
 OPEN, CLOSE = '~~[[~~', '~~]]~~'
 
+
 def tag(seq, labels):
-    assert(len(seq) == len(labels))
+    assert (len(seq) == len(labels))
     seq_new, t = [], False
     for x, y in zip(seq, labels):
         if y and (not t):

@@ -1,14 +1,12 @@
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
 from builtins import *
+
 from future.utils import iteritems
 
-from snorkel.models import StableLabel, GoldLabel, Context, GoldLabelKey
-from sqlalchemy.orm import object_session
+from snorkel.models import Context, GoldLabel, GoldLabelKey, StableLabel
 
-def reload_annotator_labels(session, candidate_class, annotator_name, split, filter_label_split=True, create_missing_cands=False):
+
+def reload_annotator_labels(session, candidate_class, annotator_name, split, filter_label_split=True,
+                            create_missing_cands=False):
     """Reloads stable annotator labels into the AnnotatorLabel table"""
     # Sets up the AnnotatorLabelKey to use
     ak = session.query(GoldLabelKey).filter(GoldLabelKey.name == annotator_name).first()
@@ -37,7 +35,7 @@ def reload_annotator_labels(session, candidate_class, annotator_name, split, fil
 
         # Check for Candidate
         # Assemble candidate arguments
-        candidate_args  = {'split' : split}
+        candidate_args = {'split': split}
         for i, arg_name in enumerate(candidate_class.__argnames__):
             candidate_args[arg_name] = contexts[i]
 

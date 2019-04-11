@@ -1,11 +1,6 @@
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
 from builtins import *
-
 import re
-import sys
+
 import numpy as np
 import scipy.sparse as sparse
 
@@ -34,6 +29,7 @@ def camel_to_under(name):
     s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
     return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
 
+
 def sparse_nonzero(X):
     """Sparse matrix with value 1 for i,jth entry !=0"""
     X_nonzero = X.copy()
@@ -47,6 +43,7 @@ def sparse_nonzero(X):
     else:
         raise ValueError("Only supports CSR/CSC and LIL matrices")
     return X_nonzero
+
 
 def sparse_abs(X):
     """Element-wise absolute value of sparse matrix- avoids casting to dense matrix!"""
@@ -78,6 +75,7 @@ def matrix_overlaps(L):
     L_nonzero = sparse_nonzero(L)
     return np.ravel(np.where(L_nonzero.sum(axis=1) > 1, 1, 0).T * L_nonzero / float(L.shape[0]))
 
+
 def matrix_conflicts(L):
     """
     Given an N x M matrix where L_{i,j} is the label given by the jth LF to the ith candidate:
@@ -95,7 +93,7 @@ def matrix_conflicts(L):
         B = B.tocsr()
     for row in range(B.shape[0]):
         if np.unique(B.getrow(row).data).size == 1:
-            B.data[B.indptr[row]:B.indptr[row+1]] = 0
+            B.data[B.indptr[row]:B.indptr[row + 1]] = 0
     return matrix_coverage(sparse_nonzero(B))
 
 
@@ -104,20 +102,24 @@ def matrix_tp(L, labels):
         np.sum(np.ravel((L[:, j] == 1).todense()) * (labels == 1)) for j in range(L.shape[1])
     ])
 
+
 def matrix_fp(L, labels):
     return np.ravel([
         np.sum(np.ravel((L[:, j] == 1).todense()) * (labels == -1)) for j in range(L.shape[1])
     ])
+
 
 def matrix_tn(L, labels):
     return np.ravel([
         np.sum(np.ravel((L[:, j] == -1).todense()) * (labels == -1)) for j in range(L.shape[1])
     ])
 
+
 def matrix_fn(L, labels):
     return np.ravel([
         np.sum(np.ravel((L[:, j] == -1).todense()) * (labels == 1)) for j in range(L.shape[1])
     ])
+
 
 def get_as_dict(x):
     """Return an object as a dictionary of its attributes"""
@@ -131,17 +133,17 @@ def get_as_dict(x):
 
 
 def sort_X_on_Y(X, Y):
-    return [x for (y,x) in sorted(zip(Y,X), key=lambda t : t[0])]
+    return [x for (y, x) in sorted(zip(Y, X), key=lambda t: t[0])]
 
 
 def corenlp_cleaner(words):
-  d = {'-RRB-': ')', '-LRB-': '(', '-RCB-': '}', '-LCB-': '{',
-       '-RSB-': ']', '-LSB-': '['}
-  return [d[w] if w in d else w for w in words]
+    d = {'-RRB-': ')', '-LRB-': '(', '-RCB-': '}', '-LCB-': '{',
+         '-RSB-': ']', '-LSB-': '['}
+    return [d[w] if w in d else w for w in words]
 
 
 def tokens_to_ngrams(tokens, n_max=3, delim=' '):
     N = len(tokens)
     for root in range(N):
         for n in range(min(n_max, N - root)):
-            yield delim.join(tokens[root:root+n+1])
+            yield delim.join(tokens[root:root + n + 1])

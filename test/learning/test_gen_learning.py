@@ -1,15 +1,11 @@
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
 from builtins import *
+import unittest
 
-import math
 from numbskull.inference import FACTORS
 from scipy import sparse
-from snorkel.learning.gen_learning import GenerativeModel, DEP_EXCLUSIVE, DEP_REINFORCING, DEP_FIXING, DEP_SIMILAR
-import unittest
 import numpy as np
+
+from snorkel.learning.gen_learning import DEP_EXCLUSIVE, DEP_FIXING, DEP_REINFORCING, DEP_SIMILAR, GenerativeModel
 
 
 class TestGenLearning(unittest.TestCase):
@@ -42,16 +38,15 @@ class TestGenLearning(unittest.TestCase):
 
         # Tests compilation
         gen_model = GenerativeModel(class_prior=True, lf_prior=False,
-            lf_propensity=False, lf_class_propensity=False)
+                                    lf_propensity=False, lf_class_propensity=False)
         gen_model._process_dependency_graph(L, ())
         m, n = L.shape
         LF_acc_prior_weights = [1.0 for _ in range(n)]
         is_fixed = [False for _ in range(n)]
         gen_model.cardinality = 2
         cardinalities = 2 * np.ones(5)
-        weight, variable, factor, ftv, domain_mask, n_edges =\
-            gen_model._compile(L, 0.5, 0.0, LF_acc_prior_weights, is_fixed, 
-                cardinalities)
+        weight, variable, factor, ftv, domain_mask, n_edges = gen_model._compile(L, 0.5, 0.0, LF_acc_prior_weights,
+                                                                                 is_fixed, cardinalities)
         #
         # Weights
         #
@@ -62,12 +57,12 @@ class TestGenLearning(unittest.TestCase):
         self.assertEqual(weight[0]['initialValue'], 0.0)
 
         # The LF priors
-        for i in range(1,7,2):
+        for i in range(1, 7, 2):
             self.assertTrue(weight[i]['isFixed'])
             self.assertEqual(weight[i]['initialValue'], 1.0)
 
         # The LF weights
-        for i in range(2,7,2):
+        for i in range(2, 7, 2):
             self.assertFalse(weight[i]['isFixed'])
             self.assertEqual(weight[i]['initialValue'], 0.0)
 
@@ -90,7 +85,7 @@ class TestGenLearning(unittest.TestCase):
                     l = 0
                 elif L[i, j] == 0:
                     l = 2
-                elif L[i,j] == 1:
+                elif L[i, j] == 1:
                     l = 1
                 self.assertEqual(variable[5 + i * 3 + j]['initialValue'], l)
                 self.assertEqual(variable[5 + i * 3 + j]["dataType"], 0)
@@ -177,16 +172,16 @@ class TestGenLearning(unittest.TestCase):
 
         # Tests compilation
         gen_model = GenerativeModel(class_prior=False, lf_prior=False,
-            lf_propensity=True, lf_class_propensity=False)
+                                    lf_propensity=True, lf_class_propensity=False)
         gen_model._process_dependency_graph(L, deps)
         m, n = L.shape
         LF_acc_prior_weights = [1.0 for _ in range(n)]
         is_fixed = [False for _ in range(n)]
         gen_model.cardinality = 2
         cardinalities = 2 * np.ones(5)
-        weight, variable, factor, ftv, domain_mask, n_edges =\
+        weight, variable, factor, ftv, domain_mask, n_edges = \
             gen_model._compile(L, 0.5, -1.0, LF_acc_prior_weights, is_fixed,
-                cardinalities)
+                               cardinalities)
 
         #
         # Weights
@@ -194,14 +189,14 @@ class TestGenLearning(unittest.TestCase):
         # Should now be 3 for LFs + 3 fixed for LF priors + 3 for LF propensity
         # + 5 for deps
         self.assertEqual(len(weight), 14)
-        
+
         # The LF priors
-        for i in range(0,6,2):
+        for i in range(0, 6, 2):
             self.assertTrue(weight[i]['isFixed'])
             self.assertEqual(weight[i]['initialValue'], 1.0)
 
         # The LF weights
-        for i in range(1,6,2):
+        for i in range(1, 6, 2):
             self.assertFalse(weight[i]['isFixed'])
             self.assertEqual(weight[i]['initialValue'], 0.0)
 
@@ -229,7 +224,7 @@ class TestGenLearning(unittest.TestCase):
                     l = 0
                 elif L[i, j] == 0:
                     l = 2
-                elif L[i,j] == 1:
+                elif L[i, j] == 1:
                     l = 1
                 self.assertEqual(variable[5 + i * 3 + j]['initialValue'], l)
                 self.assertEqual(variable[5 + i * 3 + j]["dataType"], 0)
@@ -244,7 +239,7 @@ class TestGenLearning(unittest.TestCase):
         ftv_offset = 0
         for i in range(5):
             for j in range(6):
-                self.assertEqual(factor[f_offset + i * 6+ j]["factorFunction"], FACTORS["DP_GEN_LF_ACCURACY"])
+                self.assertEqual(factor[f_offset + i * 6 + j]["factorFunction"], FACTORS["DP_GEN_LF_ACCURACY"])
                 self.assertEqual(factor[f_offset + i * 6 + j]["weightId"], j)
                 self.assertEqual(factor[f_offset + i * 6 + j]["featureValue"], 1)
                 self.assertEqual(factor[f_offset + i * 6 + j]["arity"], 2)
@@ -380,6 +375,7 @@ class TestGenLearning(unittest.TestCase):
 
         # n_edges
         self.assertEqual(n_edges, 135)
+
 
 if __name__ == '__main__':
     unittest.main()

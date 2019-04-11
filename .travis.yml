@@ -6,63 +6,62 @@ sudo: false  # to use container-based infra, see: http://docs.travis-ci.com/user
 language: generic
 env:
   matrix:
-    - PYTHON_VERSION=2.7
-    - PYTHON_VERSION=3.6
+  - PYTHON_VERSION=3.7
 
 cache:
   directories:
-    - download
+  - download
 
 before_install:
-  - travis_retry
-    wget https://repo.continuum.io/miniconda/Miniconda3-4.5.1-Linux-x86_64.sh
-    --output-document=miniconda.sh
-  - bash miniconda.sh -b -p $HOME/miniconda
-  - source $HOME/miniconda/etc/profile.d/conda.sh
-  - conda config --set always_yes yes --set changeps1 no
-  - conda info --all
+- travis_retry
+  wget https://repo.continuum.io/miniconda/Miniconda3-4.5.1-Linux-x86_64.sh
+  --output-document=miniconda.sh
+- bash miniconda.sh -b -p $HOME/miniconda
+- source $HOME/miniconda/etc/profile.d/conda.sh
+- conda config --set always_yes yes --set changeps1 no
+- conda info --all
 
 install:
-  - sed --in-place 's/- python/- python='"$PYTHON_VERSION"'/' environment.yml
-  - conda env create --quiet --file=environment.yml
-  - conda activate snorkel
-  - pip install .
-  - conda list
+- sed --in-place 's/- python/- python='"$PYTHON_VERSION"'/' environment.yml
+- conda env create --quiet --file=environment.yml
+- conda activate snorkel
+- pip install .
+- conda list
 
 script:
 
-  # Run generative model test modules
-  - python test/learning/test_gen_learning.py
-  - python test/learning/test_supervised.py
-  - python test/learning/test_categorical.py
+# Run generative model test modules
+- python test/learning/test_gen_learning.py
+- python test/learning/test_supervised.py
+- python test/learning/test_categorical.py
 
-  # Run PyTorch test modules
-  - python test/learning/pytorch/test_lstm.py
-  - python test/learning/pytorch/test_model_reloading.py
-  - python test/learning/pytorch/test_determinism.py
+# Run PyTorch test modules
+- python test/learning/pytorch/test_lstm.py
+- python test/learning/pytorch/test_model_reloading.py
+- python test/learning/pytorch/test_determinism.py
 
-  # Runs intro tutorial notebooks
-  - runipy tutorials/intro/Intro_Tutorial_1.ipynb
-  - runipy tutorials/intro/Intro_Tutorial_2.ipynb
-  - runipy tutorials/intro/Intro_Tutorial_3.ipynb
+# Runs intro tutorial notebooks
+- runipy tutorials/intro/Intro_Tutorial_1.ipynb
+- runipy tutorials/intro/Intro_Tutorial_2.ipynb
+- runipy tutorials/intro/Intro_Tutorial_3.ipynb
 
-  # Run advanced notebooks
-  - runipy tutorials/advanced/Categorical_Classes.ipynb
-  - runipy tutorials/advanced/Structure_Learning.ipynb
+# Run advanced notebooks
+- runipy tutorials/advanced/Categorical_Classes.ipynb
+- runipy tutorials/advanced/Structure_Learning.ipynb
 
-  # Run CDR tutorials
-  - runipy tutorials/cdr/CDR_Tutorial_1.ipynb
-  - runipy tutorials/cdr/CDR_Tutorial_2.ipynb
-  - runipy tutorials/cdr/CDR_Tutorial_3.ipynb
+# Run CDR tutorials
+- runipy tutorials/cdr/CDR_Tutorial_1.ipynb
+- runipy tutorials/cdr/CDR_Tutorial_2.ipynb
+- runipy tutorials/cdr/CDR_Tutorial_3.ipynb
 
-  # Run Image tutorial
-  - runipy tutorials/images/Images_Tutorial.ipynb
+# Run Image tutorial
+- runipy tutorials/images/Images_Tutorial.ipynb
 
-  # TODO check outputs, upload results, etc.
-  # for more ideas, see: https://github.com/rossant/ipycache/issues/7
+# TODO check outputs, upload results, etc.
+# for more ideas, see: https://github.com/rossant/ipycache/issues/7
 
-  # Build Sphinx documentation
-  # # Disabled due to the following error:
-  # # make: *** docs: No such file or directory.  Stop.
-  # - conda install --channel=conda-forge sphinx=1.7.4
-  # - make --directory=docs html
+# Build Sphinx documentation
+# # Disabled due to the following error:
+# # make: *** docs: No such file or directory.  Stop.
+# - conda install --channel=conda-forge sphinx=1.7.4
+# - make --directory=docs html

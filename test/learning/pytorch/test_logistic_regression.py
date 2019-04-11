@@ -1,21 +1,16 @@
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-from builtins import *
+import unittest
 
 from snorkel.learning.pytorch import LogisticRegression
-from pytorch_test_base import PyTorchTestBase
-import unittest
+from .pytorch_test_base import PyTorchTestBase
 
 
 class TestLogisticRegression(PyTorchTestBase):
 
     def test_lr(self):
         train_kwargs = {
-            'lr':            0.01,
-            'n_epochs':      10,
-            'print_freq':    1,
+            'lr': 0.01,
+            'n_epochs': 10,
+            'print_freq': 1,
         }
 
         lr = LogisticRegression()
@@ -25,9 +20,9 @@ class TestLogisticRegression(PyTorchTestBase):
 
     def test_lr_with_dev_set(self):
         train_kwargs = {
-            'lr':            0.01,
-            'n_epochs':      10,
-            'print_freq':    1,
+            'lr': 0.01,
+            'n_epochs': 10,
+            'print_freq': 1,
         }
 
         lr = LogisticRegression()

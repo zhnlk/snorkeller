@@ -1,15 +1,11 @@
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
 from builtins import *
-
-from scipy import sparse
-from snorkel.learning.gen_learning import GenerativeModel
-
 import unittest
 import random
+
+from scipy import sparse
 import numpy as np
+
+from snorkel.learning.gen_learning import GenerativeModel
 
 
 class TestSupervised(unittest.TestCase):
@@ -151,6 +147,7 @@ class TestSupervised(unittest.TestCase):
         coverage = stats["Coverage"]
         print(accs)
         self.assertTrue(np.all(np.abs(accs - np.array(bad_prior)) < tol))
+
 
 if __name__ == '__main__':
     unittest.main()

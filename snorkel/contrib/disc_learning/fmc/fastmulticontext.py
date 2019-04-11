@@ -7,7 +7,7 @@ from math import exp, log
 
 import numba
 import numpy as np
-from disc_learning import NoiseAwareModel
+from ...disc_learning import NoiseAwareModel
 
 MIN_LR = 1e-6
 

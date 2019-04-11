@@ -1,22 +1,22 @@
-from .disc_learning import NoiseAwareModel
-from .utils import MentionScorer
+import random
+from copy import copy
+from distutils.version import StrictVersion
+
+from utils import MentionScorer
 import numbskull
 from numbskull import NumbSkull
 from numbskull.inference import FACTORS
-from numbskull.numbskulltypes import Weight, Variable, Factor, FactorToVar
+from numbskull.numbskulltypes import Factor, FactorToVar, Variable, Weight
 import numpy as np
-import random
 import scipy.sparse as sparse
-from copy import copy
-from pandas import DataFrame, Series
-from distutils.version import StrictVersion
+from pandas import DataFrame
 
 DEP_SIMILAR = 0
 DEP_FIXING = 1
 DEP_REINFORCING = 2
 DEP_EXCLUSIVE = 3
 
-        
+
 class FeaturizedGenerativeModelWeights(object):
 
     def __init__(self, n):
@@ -65,7 +65,8 @@ class FeaturizedGenerativeModelWeights(object):
             return True
         else:
             return False
-        
+
+
 class FeaturizedGenerativeModel(object):
     """
     A generative model for data programming for binary classification.
@@ -83,15 +84,17 @@ class FeaturizedGenerativeModel(object):
         function propensity factors
     :param seed: seed for initializing state of Numbskull variables
     """
+
     def __init__(self, class_prior=False, lf_prior=False, lf_features=False, lf_propensity=False,
-        lf_class_propensity=False, seed=271828):
+                 lf_class_propensity=False, seed=271828):
 
         numbskull_version = numbskull.__version__
         numbskull_require = "0.1"
 
         if StrictVersion(numbskull_version) < StrictVersion(numbskull_require):
             raise ValueError(
-                "Snorkel requires Numbskull version %s, but version %s is installed." % (numbskull_require, numbskull_version))
+                "Snorkel requires Numbskull version %s, but version %s is installed." % (
+                    numbskull_require, numbskull_version))
 
         self.class_prior = class_prior
         self.lf_prior = lf_prior
@@ -116,11 +119,11 @@ class FeaturizedGenerativeModel(object):
         'dep_similar', 'dep_fixing', 'dep_reinforcing', 'dep_exclusive'
     )
 
-    def train(self, L, deps=(), LF_acc_priors=None, LF_acc_features=None, LF_acc_prior_default=0.7, 
-        labels=None, label_prior=0.99, init_deps=0.0,
-        init_class_prior=-1.0, epochs=30, step_size=None, decay=1.0,
-        reg_param=0.1, reg_type=2, verbose=False, truncation=10, burn_in=5,
-        cardinality=None, timer=None):
+    def train(self, L, deps=(), LF_acc_priors=None, LF_acc_features=None, LF_acc_prior_default=0.7,
+              labels=None, label_prior=0.99, init_deps=0.0,
+              init_class_prior=-1.0, epochs=30, step_size=None, decay=1.0,
+              reg_param=0.1, reg_type=2, verbose=False, truncation=10, burn_in=5,
+              cardinality=None, timer=None):
         """
         Fits the parameters of the model to a data set. By default, learns a
         conditionally independent model with featurized accuracies. Additional unary dependencies can be
@@ -194,13 +197,13 @@ class FeaturizedGenerativeModel(object):
             LF_acc_priors = [LF_acc_prior_default for _ in range(n)]
         else:
             LF_acc_priors = list(copy(LF_acc_priors))
-            
+
         if LF_acc_features is None:
             LF_acc_features = [str(i) for i in range(n)]
         else:
-            LF_acc_features = list(copy(LF_acc_features))                
+            LF_acc_features = list(copy(LF_acc_features))
 
-        # LF weights are un-fixed
+            # LF weights are un-fixed
         is_fixed = [False for _ in range(n)]
 
         # If supervised labels are provided, add them as a fixed LF with prior
@@ -222,19 +225,19 @@ class FeaturizedGenerativeModel(object):
 
         # Compile factor graph
         self._process_dependency_graph(L, deps)
-        weight, variable, factor, ftv, domain_mask, n_edges, feature2WoffMap =\
+        weight, variable, factor, ftv, domain_mask, n_edges, feature2WoffMap = \
             self._compile(L, init_deps, init_class_prior, LF_acc_priors, LF_acc_features,
-                is_fixed, cardinality)
+                          is_fixed, cardinality)
         fg = NumbSkull(
             n_inference_epoch=0,
-            n_learning_epoch=epochs, 
+            n_learning_epoch=epochs,
             stepsize=step_size,
             decay=decay,
             reg_param=reg_param_scaled,
             regularization=reg_type,
             truncation=truncation,
             quiet=(not verbose),
-            verbose=verbose, 
+            verbose=verbose,
             learn_non_evidence=True,
             burn_in=burn_in
         )
@@ -245,12 +248,12 @@ class FeaturizedGenerativeModel(object):
         fg.learning(out=False)
         if timer is not None:
             timer.end()
-        self._process_learned_weights(L, fg, LF_acc_priors, LF_acc_features, feature2WoffMap, is_fixed)        
+        self._process_learned_weights(L, fg, LF_acc_priors, LF_acc_features, feature2WoffMap, is_fixed)
 
         # Store info from factor graph
-        weight, variable, factor, ftv, domain_mask, n_edges, feature2WoffMap =\
+        weight, variable, factor, ftv, domain_mask, n_edges, feature2WoffMap = \
             self._compile(sparse.coo_matrix((1, n), L.dtype), init_deps,
-                init_class_prior, LF_acc_priors, LF_acc_features, is_fixed, cardinality)
+                          init_class_prior, LF_acc_priors, LF_acc_features, is_fixed, cardinality)
 
         variable["isEvidence"] = False
         weight["isFixed"] = True
@@ -319,11 +322,11 @@ class FeaturizedGenerativeModel(object):
                     "Recall": tp / count[i, 1, :].sum(),
                     "Accuracy": (tp + tn) / coverage,
                     "Coverage": coverage
-                    })
+                })
             else:
                 correct = sum([count[i, j, j] for j in range(cardinality)])
-                coverage = 1 - sum([count[i, j, cardinality] 
-                    for j in range(cardinality)])
+                coverage = 1 - sum([count[i, j, cardinality]
+                                    for j in range(cardinality)])
                 stats.append({
                     "Accuracy": correct / coverage,
                     "Coverage": coverage
@@ -350,14 +353,14 @@ class FeaturizedGenerativeModel(object):
                 for l_index1 in range(l_i.nnz):
                     data_j, j = l_i.data[l_index1], l_i.col[l_index1]
                     if data_j == 1:
-                        logp_true  += self.weights.lf_accuracy[j]
+                        logp_true += self.weights.lf_accuracy[j]
                         logp_false -= self.weights.lf_accuracy[j]
-                        logp_true  += self.weights.lf_class_propensity[j]
+                        logp_true += self.weights.lf_class_propensity[j]
                         logp_false -= self.weights.lf_class_propensity[j]
                     elif data_j == -1:
-                        logp_true  -= self.weights.lf_accuracy[j]
+                        logp_true -= self.weights.lf_accuracy[j]
                         logp_false += self.weights.lf_accuracy[j]
-                        logp_true  += self.weights.lf_class_propensity[j]
+                        logp_true += self.weights.lf_class_propensity[j]
                         logp_false -= self.weights.lf_class_propensity[j]
                     else:
                         ValueError("""Illegal value at %d, %d: %d.
@@ -395,7 +398,7 @@ class FeaturizedGenerativeModel(object):
                         # for categoricals
                         marginals[i, int(data_j - 1)] += \
                             2 * self.weights.lf_accuracy[j]
-                            
+
                 # NB: fixing and reinforcing not available for categoricals
                 # Get softmax
                 exps = np.exp(marginals[i, :])
@@ -407,11 +410,11 @@ class FeaturizedGenerativeModel(object):
               display=True, scorer=MentionScorer, **kwargs):
 
         # Get the test candidates
-        test_candidates = [X_test.get_candidate(session, i) for i in xrange(X_test.shape[0])]
+        test_candidates = [X_test.get_candidate(session, i) for i in range(X_test.shape[0])]
 
         # Initialize scorer
-        s               = scorer(test_candidates, test_labels, gold_candidate_set)
-        test_marginals  = self.marginals(X_test, **kwargs)
+        s = scorer(test_candidates, test_labels, gold_candidate_set)
+        test_marginals = self.marginals(X_test, **kwargs)
 
         return s.score(test_marginals, train_marginals=None, b=b,
                        set_unlabeled_as_neg=set_unlabeled_as_neg, display=display)
@@ -447,7 +450,7 @@ class FeaturizedGenerativeModel(object):
             if dep_type in dep_name_map:
                 dep_mat = getattr(self, dep_name_map[dep_type])
             else:
-                raise ValueError("Unrecognized dependency type: " + unicode(dep_type))
+                raise ValueError("Unrecognized dependency type: " + dep_type)
 
             dep_mat[lf1, lf2] = 1
 
@@ -469,7 +472,7 @@ class FeaturizedGenerativeModel(object):
 
         n_weights += nPrior
         n_weights += nUnFixed
-        for optional_name in FeaturizedGenerativeModel.optional_names:            
+        for optional_name in FeaturizedGenerativeModel.optional_names:
             if getattr(self, optional_name):
                 n_weights += n
         for dep_name in FeaturizedGenerativeModel.dep_names:
@@ -510,9 +513,10 @@ class FeaturizedGenerativeModel(object):
             # Prior on LF acc
             if hasPrior[i]:
                 weight[w_off]['isFixed'] = True
-                weight[w_off]['initialValue'] = np.float64(0.5 * np.log((cardinality - 1) * LF_acc_priors[i] / (1 - LF_acc_priors[i])))
+                weight[w_off]['initialValue'] = np.float64(
+                    0.5 * np.log((cardinality - 1) * LF_acc_priors[i] / (1 - LF_acc_priors[i])))
                 w_off += 1
-                
+
         # Learnable featurized acc for LF
         feature2WoffMap = {}
         # Generate a map for the unique features
@@ -544,7 +548,7 @@ class FeaturizedGenerativeModel(object):
 
         for index in range(m, m + m * n):
             variable[index]["isEvidence"] = 1
-            variable[index]["initialValue"] = cardinality # default to abstain
+            variable[index]["initialValue"] = cardinality  # default to abstain
             variable[index]["dataType"] = 0
             variable[index]["cardinality"] = cardinality + 1
 
@@ -552,7 +556,7 @@ class FeaturizedGenerativeModel(object):
         for L_index in range(L_coo.nnz):
             data, i, j = L_coo.data[L_index], L_coo.row[L_index], L_coo.col[L_index]
             index = m + n * i + j
-            if (cardinality == 2):
+            if cardinality == 2:
                 if data == 1:
                     variable[index]["initialValue"] = 1
                 elif data == 0:
@@ -596,9 +600,11 @@ class FeaturizedGenerativeModel(object):
             w_off = 0
 
         # Factors over labeling function outputs        
-        f_off, ftv_off, w_off = self._compile_output_factors_featurized(L, hasPrior, LF_acc_features, feature2WoffMap, 
-                                                             factor, f_off, ftv, ftv_off, w_off, "DP_GEN_LF_ACCURACY",
-                                                             (lambda m, n, i, j: i, lambda m, n, i, j: m + n * i + j))
+        f_off, ftv_off, w_off = self._compile_output_factors_featurized(L, hasPrior, LF_acc_features, feature2WoffMap,
+                                                                        factor, f_off, ftv, ftv_off, w_off,
+                                                                        "DP_GEN_LF_ACCURACY",
+                                                                        (lambda m, n, i, j: i,
+                                                                         lambda m, n, i, j: m + n * i + j))
 
         optional_name_map = {
             'lf_prior':
@@ -651,15 +657,17 @@ class FeaturizedGenerativeModel(object):
                     raise NotImplementedError(
                         dep_name + " not implemented for categorical classes.")
                 for i in range(len(mat.data)):
-                    f_off, ftv_off, w_off = self._compile_dep_factors(L, factor, 
-                        f_off, ftv, ftv_off, w_off, mat.row[i], mat.col[i],
-                        dep_name_map[dep_name][0], dep_name_map[dep_name][1])
+                    f_off, ftv_off, w_off = self._compile_dep_factors(L, factor,
+                                                                      f_off, ftv, ftv_off, w_off, mat.row[i],
+                                                                      mat.col[i],
+                                                                      dep_name_map[dep_name][0],
+                                                                      dep_name_map[dep_name][1])
 
         return weight, variable, factor, ftv, domain_mask, n_edges, feature2WoffMap
 
-    def _compile_output_factors(self, L, factors, factors_offset, ftv, 
-        ftv_offset, weight_offset, factor_name, vid_funcs,
-        nfactors_for_lf=None):
+    def _compile_output_factors(self, L, factors, factors_offset, ftv,
+                                ftv_offset, weight_offset, factor_name, vid_funcs,
+                                nfactors_for_lf=None):
         """
         Compiles factors over the outputs of labeling functions, i.e., for which
         there is one weight per labeling function and one factor per labeling 
@@ -690,18 +698,19 @@ class FeaturizedGenerativeModel(object):
                         ftv_index += 1
 
         return factors_index, ftv_index, w_off
-    
-    def _compile_output_factors_featurized(self, L, hasPrior, LF_acc_features, feature2WoffMap, factors, factors_offset, ftv, 
-        ftv_offset, weight_offset, factor_name, vid_funcs):
+
+    def _compile_output_factors_featurized(self, L, hasPrior, LF_acc_features, feature2WoffMap,
+                                           factors, factors_offset, ftv,
+                                           ftv_offset, weight_offset, factor_name, vid_funcs):
         """
         Compiles factors over the outputs of labeling functions, i.e., for which
         there is one weight per labeling function and one factor per labeling 
         function-candidate pair.
         """
         m, n = L.shape
-        
+
         factors_index = factors_offset
-        ftv_index = ftv_offset        
+        ftv_index = ftv_offset
         for i in range(m):
             w_off = weight_offset
             for j in range(n):
@@ -715,10 +724,10 @@ class FeaturizedGenerativeModel(object):
 
                     factors_index += 1
                     w_off += 1
-                    
-                    ftv[ftv_index]["vid"] = vid_funcs[0](m,n,i,j)
+
+                    ftv[ftv_index]["vid"] = vid_funcs[0](m, n, i, j)
                     ftv_index += 1
-                    
+
                 # Feature coupled factor    
                 feat = LF_acc_features[j]
                 factors[factors_index]["factorFunction"] = FACTORS[factor_name]
@@ -729,12 +738,13 @@ class FeaturizedGenerativeModel(object):
 
                 factors_index += 1
 
-                ftv[ftv_index]["vid"] = vid_funcs[1](m,n,i,j)
-                ftv_index += 1                                        
+                ftv[ftv_index]["vid"] = vid_funcs[1](m, n, i, j)
+                ftv_index += 1
         w_off = weight_offset + sum(hasPrior) + len(feature2WoffMap)
         return factors_index, ftv_index, w_off
 
-    def _compile_dep_factors(self, L, factors, factors_offset, ftv, ftv_offset, weight_offset, j, k, factor_name, vid_funcs):
+    def _compile_dep_factors(self, L, factors, factors_offset, ftv, ftv_offset, weight_offset, j, k, factor_name,
+                             vid_funcs):
         """
         Compiles factors for dependencies between pairs of labeling functions (possibly also depending on the latent
         class label).
@@ -768,15 +778,15 @@ class FeaturizedGenerativeModel(object):
         else:
             init_w_off = 0
 
-        weights.lf_accuracy = np.zeros((n,))        
+        weights.lf_accuracy = np.zeros((n,))
         for i in range(n):
             # Prior on LF acc
             if self.hasPrior[i]:
-                weights.lf_accuracy[i] += w[init_w_off+i]
+                weights.lf_accuracy[i] += w[init_w_off + i]
         # Learnable featurized acc for LF    
-        for i in range(n):        
-            if (not is_fixed[i]):
-                feat = LF_acc_features[i]            
+        for i in range(n):
+            if not is_fixed[i]:
+                feat = LF_acc_features[i]
                 weights.lf_accuracy[i] += w[feature2WoffMap[feat]]
 
         w_off = init_w_off + n + len(feature2WoffMap)

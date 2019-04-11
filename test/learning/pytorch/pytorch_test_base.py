@@ -1,18 +1,16 @@
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
 # Hiding this import for now so that 'Spouse' in setUpClass() passes a string
 # to candidate_subclass, which ultimately calls type(...). So this import can be
 # re-added when Python 2 is no longer supported.
-#from __future__ import unicode_literals
+# from __future__ import unicode_literals
 from builtins import *
-
 import os
-from snorkel.annotations import load_gold_labels, load_marginals, load_feature_matrix
-from snorkel.models import candidate_subclass
+import unittest
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-import unittest
+
+from snorkel.annotations import load_feature_matrix, load_gold_labels, load_marginals
+from snorkel.models import candidate_subclass
 
 
 class PyTorchTestBase(unittest.TestCase):
@@ -34,8 +32,8 @@ class PyTorchTestBase(unittest.TestCase):
         cls.train_marginals = load_marginals(cls.session, split=0)
 
         cls.train_cands = cls.session.query(Spouse).filter(Spouse.split == 0).order_by(Spouse.id).all()
-        cls.dev_cands   = cls.session.query(Spouse).filter(Spouse.split == 1).order_by(Spouse.id).all()
-        cls.test_cands  = cls.session.query(Spouse).filter(Spouse.split == 2).order_by(Spouse.id).all()
+        cls.dev_cands = cls.session.query(Spouse).filter(Spouse.split == 1).order_by(Spouse.id).all()
+        cls.test_cands = cls.session.query(Spouse).filter(Spouse.split == 2).order_by(Spouse.id).all()
 
         # Each candidate is featurized as 10 floats. The first five are between
         # -.25 and 1 if the class label is True and between -1 and .25 if False.
@@ -44,7 +42,7 @@ class PyTorchTestBase(unittest.TestCase):
         cls.F_dev = load_feature_matrix(cls.session, split=1, coerce_int=False)
         cls.F_test = load_feature_matrix(cls.session, split=2, coerce_int=False)
 
-        cls.L_gold_dev  = load_gold_labels(cls.session, annotator_name='gold', split=1)
+        cls.L_gold_dev = load_gold_labels(cls.session, annotator_name='gold', split=1)
         cls.L_gold_test = load_gold_labels(cls.session, annotator_name='gold', split=2)
 
     @classmethod

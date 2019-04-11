@@ -1,15 +1,9 @@
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-from builtins import *
-
 import codecs
 import glob
 import os
 import re
-import lxml.etree as et
 
+import lxml.etree as et
 from bs4 import BeautifulSoup
 
 from snorkel.models import Document
@@ -115,8 +109,7 @@ class CSVPathsPreprocessor(DocPreprocessor):
        parameter to constructor.
      """
 
-    def __init__(self, path, parser_factory=TextDocPreprocessor, column=None,
-                 delim=',', *args, **kwargs):
+    def __init__(self, path, parser_factory=TextDocPreprocessor, column=None, delim=',', *args, **kwargs):
         """
         :param path: input file having paths
         :param parser_factory: The parser class to be used to parse the
@@ -228,7 +221,7 @@ class XMLMultiDocPreprocessor(DocPreprocessor):
     """
 
     def __init__(self, path, doc='.//document', text='./text/text()',
-        id='./id/text()', keep_xml_tree=False, *args, **kwargs):
+                 id='./id/text()', keep_xml_tree=False, *args, **kwargs):
         super(XMLMultiDocPreprocessor, self).__init__(path, *args, **kwargs)
         self.doc = doc
         self.text = text

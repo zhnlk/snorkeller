@@ -1,13 +1,10 @@
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
 from builtins import *
-
 import re
-import pkg_resources
 from pathlib import Path
 from collections import defaultdict
+
+import pkg_resources
+
 from snorkel.models import construct_stable_id
 from snorkel.parser.parser import Parser, ParserConnection
 
@@ -18,22 +15,26 @@ try:
 except:
     raise Exception("spacy not installed. Use `pip install spacy`.")
 
+
 class Tokenizer(object):
     '''
     Interface for rule-based tokenizers
     '''
-    def apply(self,s):
+
+    def apply(self, s):
         raise NotImplementedError()
+
 
 class RegexTokenizer(Tokenizer):
     '''
     Regular expression tokenization.
     '''
+
     def __init__(self, rgx="\s+"):
         super(RegexTokenizer, self).__init__()
         self.rgx = re.compile(rgx)
 
-    def apply(self,s):
+    def apply(self, s):
         '''
 
         :param s:
@@ -43,16 +44,18 @@ class RegexTokenizer(Tokenizer):
         offset = 0
         # keep track of char offsets
         for t in self.rgx.split(s):
-            while offset < len(s) and t != s[offset:offset+len(t)]:
+            while offset < len(s) and t != s[offset:offset + len(t)]:
                 offset += 1
-            tokens += [(t,offset)]
+            tokens += [(t, offset)]
             offset += len(t)
         return tokens
+
 
 class SpacyTokenizer(Tokenizer):
     '''
     Only use spaCy's tokenizer functionality
     '''
+
     def __init__(self, lang='en'):
         super(SpacyTokenizer, self).__init__()
         self.lang = lang
@@ -93,9 +96,9 @@ class SpacyTokenizer(Tokenizer):
             raise IOError("Can't find spaCy data path: %s" % str(data_path))
         if name in set([d.name for d in data_path.iterdir()]):
             return True
-        if SpacyTokenizer.is_package(name): # installed as package
+        if SpacyTokenizer.is_package(name):  # installed as package
             return True
-        if Path(name).exists(): # path to model data directory
+        if Path(name).exists():  # path to model data directory
             return True
         return False
 
@@ -129,6 +132,7 @@ class RuleBasedParser(Parser):
      1) detecting sentence boundaries
      2) tokenizing
     '''
+
     def __init__(self, tokenizer=None, sent_boundary=None):
 
         super(RuleBasedParser, self).__init__(name="rules")
@@ -162,7 +166,7 @@ class RuleBasedParser(Parser):
         offset, position = 0, 0
         sentences = self.sent_boundary.apply(text)
 
-        for sent,sent_offset in sentences:
+        for sent, sent_offset in sentences:
             parts = defaultdict(list)
             tokens = self.tokenizer.apply(sent)
             if not tokens:

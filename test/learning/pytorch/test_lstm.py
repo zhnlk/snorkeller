@@ -1,13 +1,8 @@
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-from builtins import *
-
 import math
-from snorkel.learning.pytorch import LSTM
-from pytorch_test_base import PyTorchTestBase
 import unittest
+
+from .pytorch_test_base import PyTorchTestBase
+from snorkel.learning.pytorch import LSTM
 
 
 class TestLSTM(PyTorchTestBase):
@@ -16,12 +11,12 @@ class TestLSTM(PyTorchTestBase):
         for num_layers in (1, 2):
             for bidirectional in (True, False):
                 train_kwargs = {
-                    'lr':            0.01,
+                    'lr': 0.01,
                     'embedding_dim': 50,
-                    'hidden_dim':    50,
-                    'n_epochs':      2,
-                    'dropout':       0.25,
-                    'num_layers':    num_layers,
+                    'hidden_dim': 50,
+                    'n_epochs': 2,
+                    'dropout': 0.25,
+                    'num_layers': num_layers,
                     'bidirectional': bidirectional
                 }
 
@@ -32,12 +27,12 @@ class TestLSTM(PyTorchTestBase):
 
     def test_lstm_with_dev_set(self):
         train_kwargs = {
-            'lr':            0.01,
+            'lr': 0.01,
             'embedding_dim': 50,
-            'hidden_dim':    50,
-            'n_epochs':      2,
-            'dropout':       0.25,
-            'num_layers':    1,
+            'hidden_dim': 50,
+            'n_epochs': 2,
+            'dropout': 0.25,
+            'num_layers': 1,
             'bidirectional': False
         }
 

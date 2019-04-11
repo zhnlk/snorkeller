@@ -1,24 +1,21 @@
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
 from builtins import *
-from future.utils import iteritems
+import random
+from copy import copy
+from distutils.version import StrictVersion
+import os
 
-from .classifier import Classifier
+from future.utils import iteritems
 from numba import jit
 import numbskull
 from numbskull import NumbSkull
 from numbskull.inference import FACTORS
-from numbskull.numbskulltypes import Weight, Variable, Factor, FactorToVar
+from numbskull.numbskulltypes import Factor, FactorToVar, Variable, Weight
 import numpy as np
-import random
 import scipy.sparse as sparse
-from copy import copy
 from pandas import DataFrame
-from distutils.version import StrictVersion
 from six.moves.cPickle import dump, load
-import os
+
+from .classifier import Classifier
 
 DEP_SIMILAR = 0
 DEP_FIXING = 1
@@ -40,8 +37,9 @@ class GenerativeModel(Classifier):
         function propensity factors
     :param seed: seed for initializing state of Numbskull variables
     """
+
     def __init__(self, class_prior=False, lf_prior=False, lf_propensity=False,
-        lf_class_propensity=False, seed=271828, name=None, cardinality=None):
+                 lf_class_propensity=False, seed=271828, name=None, cardinality=None):
         self.name = name or self.__class__.__name__
         try:
             numbskull_version = numbskull.__version__
@@ -51,7 +49,8 @@ class GenerativeModel(Classifier):
 
         if StrictVersion(numbskull_version) < StrictVersion(numbskull_require):
             raise ValueError(
-                "Snorkel requires Numbskull version %s, but version %s is installed." % (numbskull_require, numbskull_version))
+                "Snorkel requires Numbskull version %s, but version %s is installed." % (
+                numbskull_require, numbskull_version))
 
         self.class_prior = class_prior
         self.lf_prior = lf_prior
@@ -78,10 +77,10 @@ class GenerativeModel(Classifier):
     )
 
     def train(self, L, deps=(), LF_acc_prior_weights=None,
-        LF_acc_prior_weight_default=1, labels=None, label_prior_weight=5,
-        init_deps=0.0, init_class_prior=-1.0, epochs=30, step_size=None, 
-        decay=1.0, reg_param=0.1, reg_type=2, verbose=False, truncation=10, 
-        burn_in=5, cardinality=None, timer=None, candidate_ranges=None, threads=1):
+              LF_acc_prior_weight_default=1, labels=None, label_prior_weight=5,
+              init_deps=0.0, init_class_prior=-1.0, epochs=30, step_size=None,
+              decay=1.0, reg_param=0.1, reg_type=2, verbose=False, truncation=10,
+              burn_in=5, cardinality=None, timer=None, candidate_ranges=None, threads=1):
         """
         Fits the parameters of the model to a data set. By default, learns a
         conditionally independent model. Additional unary dependencies can be
@@ -134,7 +133,7 @@ class GenerativeModel(Classifier):
         step_size = step_size or 0.0001
 
         # Check to make sure matrix is int-valued
-        element_type = type(L[0,0])
+        element_type = type(L[0, 0])
         # Note: Other simpler forms of this check often don't work; still not
         # sure why...
         if not issubclass(element_type, np.integer):
@@ -200,8 +199,8 @@ class GenerativeModel(Classifier):
         self.cardinalities = self.cardinality * np.ones(m, dtype=np.int64)
         self.candidate_ranges = candidate_ranges
         if self.candidate_ranges is not None:
-            L, self.cardinalities, _ = self._remap_scoped_categoricals(L, 
-                self.candidate_ranges)
+            L, self.cardinalities, _ = self._remap_scoped_categoricals(L,
+                                                                       self.candidate_ranges)
 
         # Shuffle the data points, cardinalities, and candidate_ranges
         idxs = self.rng.permutation(list(range(m)))
@@ -219,14 +218,14 @@ class GenerativeModel(Classifier):
             L, init_deps, init_class_prior, LF_acc_prior_weights, is_fixed, self.cardinalities)
         fg = NumbSkull(
             n_inference_epoch=0,
-            n_learning_epoch=epochs, 
+            n_learning_epoch=epochs,
             stepsize=step_size,
             decay=decay,
             reg_param=reg_param,
             regularization=reg_type,
             truncation=truncation,
             quiet=(not verbose),
-            verbose=verbose, 
+            verbose=verbose,
             learn_non_evidence=True,
             burn_in=burn_in,
             nthreads=threads
@@ -246,10 +245,10 @@ class GenerativeModel(Classifier):
         else:
             self.cardinality_for_stats = self.cardinality
         self.learned_weights = fg.factorGraphs[0].weight_value
-        weight, variable, factor, ftv, domain_mask, n_edges =\
+        weight, variable, factor, ftv, domain_mask, n_edges = \
             self._compile(sparse.coo_matrix((1, n), L.dtype), init_deps,
-                init_class_prior, LF_acc_prior_weights, is_fixed,
-                [self.cardinality_for_stats])
+                          init_class_prior, LF_acc_prior_weights, is_fixed,
+                          [self.cardinality_for_stats])
 
         variable["isEvidence"] = False
         weight["isFixed"] = True
@@ -351,11 +350,11 @@ class GenerativeModel(Classifier):
                     "Recall": tp / count[i, 1, :].sum(),
                     "Accuracy": (tp + tn) / coverage,
                     "Coverage": coverage
-                    })
+                })
             else:
                 correct = sum([count[i, j, j] for j in range(cardinality)])
                 coverage = 1 - sum([count[i, j, cardinality]
-                    for j in range(cardinality)])
+                                    for j in range(cardinality)])
                 stats.append({
                     "Accuracy": correct / coverage,
                     "Coverage": coverage
@@ -399,14 +398,14 @@ class GenerativeModel(Classifier):
                 for l_index1 in range(l_i.nnz):
                     data_j, j = l_i.data[l_index1], l_i.col[l_index1]
                     if data_j == 1:
-                        logp_true  += self.weights.lf_accuracy[j]
+                        logp_true += self.weights.lf_accuracy[j]
                         logp_false -= self.weights.lf_accuracy[j]
-                        logp_true  += self.weights.lf_class_propensity[j]
+                        logp_true += self.weights.lf_class_propensity[j]
                         logp_false -= self.weights.lf_class_propensity[j]
                     elif data_j == -1:
-                        logp_true  -= self.weights.lf_accuracy[j]
+                        logp_true -= self.weights.lf_accuracy[j]
                         logp_false += self.weights.lf_accuracy[j]
-                        logp_true  += self.weights.lf_class_propensity[j]
+                        logp_true += self.weights.lf_class_propensity[j]
                         logp_false -= self.weights.lf_class_propensity[j]
                     else:
                         ValueError("""Illegal value at %d, %d: %d.
@@ -435,8 +434,8 @@ class GenerativeModel(Classifier):
             # Handle the scoped categorical case, otherwise get cardinalities
             # from self.cardinality
             if candidate_ranges is not None:
-                L, cardinalities, mappings = self._remap_scoped_categoricals(L, 
-                    candidate_ranges)
+                L, cardinalities, mappings = self._remap_scoped_categoricals(L,
+                                                                             candidate_ranges)
             else:
                 cardinalities = self.cardinality * np.ones(m)
 
@@ -457,7 +456,7 @@ class GenerativeModel(Classifier):
                         # for categoricals
                         marginals[int(data_j - 1)] += \
                             2 * self.weights.lf_accuracy[j]
-                            
+
                 # NB: fixing and reinforcing not available for categoricals
                 # Get softmax
                 exps = np.exp(marginals)
@@ -605,7 +604,7 @@ class GenerativeModel(Classifier):
                 variable[index]["isEvidence"] = 1
                 variable[index]["dataType"] = 0
                 variable[index]["cardinality"] = cardinalities[i] + 1
-                
+
                 # Default to abstain
                 variable[index]["initialValue"] = cardinalities[i]
 
@@ -663,8 +662,10 @@ class GenerativeModel(Classifier):
 
         # Factors over labeling function outputs
         nfactors_for_lf = [(int(self.hasPrior[i]) + int(not is_fixed[i])) for i in range(n)]
-        f_off, ftv_off, w_off = self._compile_output_factors(L, factor, f_off, ftv, ftv_off, w_off, "DP_GEN_LF_ACCURACY",
-                                                             (lambda m, n, i, j: i, lambda m, n, i, j: m + n * i + j), nfactors_for_lf)
+        f_off, ftv_off, w_off = self._compile_output_factors(L, factor, f_off, ftv, ftv_off, w_off,
+                                                             "DP_GEN_LF_ACCURACY",
+                                                             (lambda m, n, i, j: i, lambda m, n, i, j: m + n * i + j),
+                                                             nfactors_for_lf)
 
         optional_name_map = {
             'lf_prior':
@@ -717,15 +718,17 @@ class GenerativeModel(Classifier):
                     raise NotImplementedError(
                         dep_name + " not implemented for categorical classes.")
                 for i in range(len(mat.data)):
-                    f_off, ftv_off, w_off = self._compile_dep_factors(L, factor, 
-                        f_off, ftv, ftv_off, w_off, mat.row[i], mat.col[i],
-                        dep_name_map[dep_name][0], dep_name_map[dep_name][1])
+                    f_off, ftv_off, w_off = self._compile_dep_factors(L, factor,
+                                                                      f_off, ftv, ftv_off, w_off, mat.row[i],
+                                                                      mat.col[i],
+                                                                      dep_name_map[dep_name][0],
+                                                                      dep_name_map[dep_name][1])
 
         return weight, variable, factor, ftv, domain_mask, n_edges
 
-    def _compile_output_factors(self, L, factors, factors_offset, ftv, 
-        ftv_offset, weight_offset, factor_name, vid_funcs,
-        nfactors_for_lf=None):
+    def _compile_output_factors(self, L, factors, factors_offset, ftv,
+                                ftv_offset, weight_offset, factor_name, vid_funcs,
+                                nfactors_for_lf=None):
         """
         Compiles factors over the outputs of labeling functions, i.e., for which
         there is one weight per labeling function and one factor per labeling 
@@ -757,7 +760,8 @@ class GenerativeModel(Classifier):
 
         return factors_index, ftv_index, w_off
 
-    def _compile_dep_factors(self, L, factors, factors_offset, ftv, ftv_offset, weight_offset, j, k, factor_name, vid_funcs):
+    def _compile_dep_factors(self, L, factors, factors_offset, ftv, ftv_offset, weight_offset, j, k, factor_name,
+                             vid_funcs):
         """
         Compiles factors for dependencies between pairs of labeling functions (possibly also depending on the latent
         class label).
@@ -825,7 +829,7 @@ class GenerativeModel(Classifier):
         model_name = model_name or self.name
         if not os.path.exists(save_dir):
             os.makedirs(save_dir)
-        
+
         # Save generative model weights
         save_path = os.path.join(save_dir, "{0}.weights.pkl".format(model_name))
         with open(save_path, 'wb') as f:
