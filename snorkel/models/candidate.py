@@ -61,8 +61,7 @@ class Candidate(SnorkelBase):
 candidate_subclasses = {}
 
 
-def candidate_subclass(class_name, args, table_name=None, cardinality=None,
-                       values=None):
+def candidate_subclass(class_name, args, table_name=None, cardinality=None, values=None):
     """
     Creates and returns a Candidate subclass with provided argument names,
     which are Context type. Creates the table in DB if does not exist yet.
@@ -145,15 +144,13 @@ def candidate_subclass(class_name, args, table_name=None, cardinality=None,
         unique_args = []
         for arg in args:
             # Primary arguments are constituent Contexts, and their ids
-            class_attribs[arg + '_id'] = Column(
-                Integer, ForeignKey('context.id', ondelete='CASCADE'), index=True)
+            class_attribs[arg + '_id'] = Column(Integer, ForeignKey('context.id', ondelete='CASCADE'), index=True)
             class_attribs[arg] = relationship(
                 'Context',
-                backref=backref(
-                    table_name + '_' + arg + 's',
-                    cascade_backrefs=False,
-                    cascade='all, delete-orphan'
-                ),
+                backref=backref(table_name + '_' + arg + 's',
+                                cascade_backrefs=False,
+                                cascade='all, delete-orphan'
+                                ),
                 cascade_backrefs=False,
                 foreign_keys=class_attribs[arg + '_id']
             )

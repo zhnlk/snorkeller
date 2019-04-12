@@ -94,8 +94,8 @@ class UDFRunner(object):
 
         # Start UDF Processes
         for i in range(parallelism):
-            udf = self.udf_class(in_queue=in_queue, out_queue=out_queue,
-                                 add_to_session=(self.reducer is None), **self.udf_init_kwargs)
+            udf = self.udf_class(in_queue=in_queue, out_queue=out_queue, add_to_session=(self.reducer is None),
+                                 **self.udf_init_kwargs)
             udf.apply_kwargs = kwargs
             self.udfs.append(udf)
 

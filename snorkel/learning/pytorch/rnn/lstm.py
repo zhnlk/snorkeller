@@ -7,7 +7,7 @@ from snorkel.learning.pytorch.rnn.utils import SymbolTable
 
 
 class LSTM(RNNBase):
-    
+
     def _build_model(self, embedding_dim=50, hidden_dim=50, num_layers=1, dropout=0.25, bidirectional=False,
                      word_dict=SymbolTable(), **kwargs):
         self.word_dict = word_dict
@@ -24,7 +24,7 @@ class LSTM(RNNBase):
 
         self.output_layer = nn.Linear(hidden_dim * self.num_directions, self.cardinality if self.cardinality > 2 else 1)
         self.dropout_layer = nn.Dropout(p=dropout)
-        
+
     def forward(self, X, hidden_state):
         seq_lengths = torch.zeros((X.size(0)), dtype=torch.long)
         for i in range(X.size(0)):
@@ -36,7 +36,8 @@ class LSTM(RNNBase):
 
         seq_lengths, perm_idx = seq_lengths.sort(0, descending=True)
         X = X[perm_idx, :]
-        inv_perm_idx = torch.tensor([i for i, _ in sorted(enumerate(perm_idx), key=lambda idx: idx[1])], dtype=torch.long)
+        inv_perm_idx = torch.tensor([i for i, _ in sorted(enumerate(perm_idx), key=lambda idx: idx[1])],
+                                    dtype=torch.long)
 
         encoded_X = self.embedding(X)
         encoded_X = pack_padded_sequence(encoded_X, seq_lengths, batch_first=True)
@@ -44,7 +45,7 @@ class LSTM(RNNBase):
         output = ht[-1] if self.num_directions == 1 else torch.cat((ht[0], ht[1]), dim=1)
 
         return self.output_layer(self.dropout_layer(output[inv_perm_idx, :]))
-    
+
     def initialize_hidden_state(self, batch_size):
         return (
             torch.zeros(self.num_layers * self.num_directions, batch_size, self.hidden_dim),

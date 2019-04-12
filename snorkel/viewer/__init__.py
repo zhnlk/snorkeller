@@ -87,10 +87,8 @@ class Viewer(widgets.DOMWidget):
         for i, candidate in enumerate(self.candidates):
 
             # First look for the annotation in the primary annotations table
-            existing_annotation = self.session.query(GoldLabel) \
-                .filter(GoldLabel.key == self.annotator) \
-                .filter(GoldLabel.candidate == candidate) \
-                .first()
+            existing_annotation = self.session.query(GoldLabel).filter(GoldLabel.key == self.annotator).filter(
+                GoldLabel.candidate == candidate).first()
             if existing_annotation is not None:
                 self.annotations[i] = existing_annotation
                 if existing_annotation.value == 1:
@@ -104,17 +102,17 @@ class Viewer(widgets.DOMWidget):
 
                 # If the annotator label is in the main table, also get its stable version
                 context_stable_ids = '~~'.join([c.stable_id for c in candidate.get_contexts()])
-                existing_annotation_stable = self.session.query(StableLabel) \
-                    .filter(StableLabel.context_stable_ids == context_stable_ids) \
-                    .filter(StableLabel.annotator_name == name).one_or_none()
+                existing_annotation_stable = self.session.query(StableLabel).filter(
+                    StableLabel.context_stable_ids == context_stable_ids).filter(
+                    StableLabel.annotator_name == name).one_or_none()
 
                 # If stable version is not available, create it here
                 # NOTE: This is for versioning issues, should be removed?
                 if existing_annotation_stable is None:
                     context_stable_ids = '~~'.join([c.stable_id for c in candidate.get_contexts()])
-                    existing_annotation_stable = StableLabel(context_stable_ids=context_stable_ids, \
-                                                             annotator_name=self.annotator.name, \
-                                                             split=candidate.split, \
+                    existing_annotation_stable = StableLabel(context_stable_ids=context_stable_ids,
+                                                             annotator_name=self.annotator.name,
+                                                             split=candidate.split,
                                                              value=existing_annotation.value)
                     self.session.add(existing_annotation_stable)
                     self.session.commit()
@@ -222,9 +220,8 @@ class Viewer(widgets.DOMWidget):
 
                 # Create StableLabel
                 context_stable_ids = '~~'.join([c.stable_id for c in candidate.get_contexts()])
-                self.annotations_stable[cid] = StableLabel(context_stable_ids=context_stable_ids, \
-                                                           annotator_name=self.annotator.name, \
-                                                           value=value, \
+                self.annotations_stable[cid] = StableLabel(context_stable_ids=context_stable_ids,
+                                                           annotator_name=self.annotator.name, value=value,
                                                            split=candidate.split)
                 self.session.add(self.annotations_stable[cid])
                 self.session.commit()
@@ -257,8 +254,7 @@ class SentenceNgramViewer(Viewer):
 
         # First, split the sentence into the *smallest* single-candidate chunks
         try:
-            both = [c[0] for c in candidates] + [c[1] for c in candidates] \
-                   + [g[0] for g in gold] + [g[1] for g in gold]
+            both = [c[0] for c in candidates] + [c[1] for c in candidates] + [g[0] for g in gold] + [g[1] for g in gold]
         except:
             both = [c[0] for c in candidates] + [g[0] for g in gold]
         splits = sorted(list(set([b.char_start for b in both] + [b.char_end + 1 for b in both] + [0, len(s)])))
